@@ -1,6 +1,9 @@
 import { HomeFeed } from "@/components/home-feed";
-import { MOCK_STARTUPS } from "@/data/mock-startups";
+import { getStartups } from "@/src/lib/startups";
 
-export default function Home() {
-  return <HomeFeed startups={MOCK_STARTUPS} />;
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const startups = await getStartups();
+  return <HomeFeed startups={startups} />;
 }

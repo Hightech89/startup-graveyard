@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Startup } from "@/types/startup";
 import { StartupCard } from "./startup-card";
@@ -59,6 +60,14 @@ export function HomeFeed({ startups }: HomeFeedProps) {
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-zinc-300">
               Where ideas go to die — and founders learn why.
+            </p>
+            <p className="mt-5">
+              <Link
+                href="/submit"
+                className="text-sm font-semibold text-orange-400 hover:text-orange-300"
+              >
+                Submit a startup
+              </Link>
             </p>
           </div>
 
@@ -154,7 +163,12 @@ export function HomeFeed({ startups }: HomeFeedProps) {
             {filtered.length} of {startups.length}
           </p>
         </div>
-        {filtered.length === 0 ? (
+        {startups.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 py-12 text-center text-zinc-400">
+            Nothing buried here yet. Add rows to the startups table in Supabase to
+            see them listed.
+          </p>
+        ) : filtered.length === 0 ? (
           <p className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 py-12 text-center text-zinc-400">
             No matches. Try another search.
           </p>
