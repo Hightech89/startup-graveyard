@@ -1,14 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { AuthStatus } from "@/components/auth-status";
-import { SubmitAuthGuard } from "@/components/submit-auth-guard";
+import { StartupDetailClient } from "@/components/startup-detail-client";
+import { getStartupById } from "@/src/lib/startups";
 
 export const metadata: Metadata = {
-  title: "Submit startup · Startup Graveyard",
-  description: "Add a failed startup to the graveyard.",
+  title: "Startup · Startup Graveyard",
+  description: "Startup details.",
 };
 
-export default function SubmitPage() {
+export default async function StartupPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const startup = await getStartupById(params.id);
+
+  if (!startup) notFound();
+
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-50">
       <header className="border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.12),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
@@ -23,21 +33,18 @@ export default function SubmitPage() {
             <AuthStatus />
           </div>
           <h1 className="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Submit a startup
+            Startup
           </h1>
           <p className="mt-2 max-w-xl text-zinc-400">
-            Lay another idea to rest. Fields map to your Supabase{" "}
-            <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-xs text-zinc-300">
-              startups
-            </code>{" "}
-            table.
+            Upvote what’s worth saving. Learn why it didn’t make it.
           </p>
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-        <SubmitAuthGuard />
+        <StartupDetailClient startup={startup} />
       </main>
     </div>
   );
 }
+

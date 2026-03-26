@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Startup } from "@/types/startup";
+import { AuthStatus } from "./auth-status";
 import { StartupCard } from "./startup-card";
+import { supabase } from "@/src/lib/supabase";
 
 type HomeFeedProps = {
   startups: Startup[];
@@ -24,6 +26,9 @@ export function HomeFeed({ startups }: HomeFeedProps) {
   const [query, setQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [sort, setSort] = useState<"top" | "az">("top");
+  const [userVotedStartupIds, setUserVotedStartupIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const allTags = useMemo(() => {
     const counts = new Map<string, number>();
@@ -46,10 +51,53 @@ export function HomeFeed({ startups }: HomeFeedProps) {
     return sorted;
   }, [selectedTag, sort, startups, query]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadVotedIds() {
+      // Default to empty state for logged-out users.
+      const { data } = await supabase.auth.getUser();
+      const user = data.user;
+      if (!mounted) return;
+
+      if (!user) {
+        setUserVotedStartupIds(new Set());
+        return;
+      }
+
+      const ids = startups.map((s) => s.id);
+      if (ids.length === 0) {
+        setUserVotedStartupIds(new Set());
+        return;
+      }
+      const { data: votes } = await supabase
+        .from("startup_votes")
+        .select("startup_id")
+        .eq("user_id", user.id)
+        .in("startup_id", ids);
+
+      if (!mounted) return;
+      if (!votes) {
+        setUserVotedStartupIds(new Set());
+        return;
+      }
+
+      setUserVotedStartupIds(new Set(votes.map((v) => v.startup_id)));
+    }
+
+    loadVotedIds();
+    return () => {
+      mounted = false;
+    };
+  }, [startups]);
+
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-50">
       <header className="border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.16),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
         <div className="mx-auto max-w-5xl px-4 py-18 sm:px-6 sm:py-24">
+          <div className="mb-8 flex items-center justify-end">
+            <AuthStatus />
+          </div>
           <div className="text-center">
             <h1 className="relative inline-block text-4xl font-extrabold tracking-tight sm:text-5xl">
               <span
@@ -176,7 +224,10 @@ export function HomeFeed({ startups }: HomeFeedProps) {
           <ul className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
             {filtered.map((startup) => (
               <li key={startup.id}>
-                <StartupCard startup={startup} />
+                <StartupCard
+                  startup={startup}
+                  userHasVoted={userVotedStartupIds.has(startup.id)}
+                />
               </li>
             ))}
           </ul>

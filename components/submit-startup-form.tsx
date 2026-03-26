@@ -24,10 +24,12 @@ export function SubmitStartupForm() {
   const [tagsInput, setTagsInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsAuth, setNeedsAuth] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setNeedsAuth(false);
 
     const causeOfDeath =
       causePreset === "__other__" ? causeCustom.trim() : causePreset;
@@ -55,7 +57,32 @@ export function SubmitStartupForm() {
       .filter(Boolean);
 
     setLoading(true);
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    const sessionMissing =
+      !!userError &&
+      /auth session missing|session missing/i.test(userError.message);
+
+    if (!user || sessionMissing) {
+      setLoading(false);
+      setNeedsAuth(true);
+      setError("You must be logged in to submit a startup.");
+      return;
+    }
+
+    if (userError) {
+      // Avoid leaking internal auth errors to the user.
+      setLoading(false);
+      setError("Unable to verify your session. Please try again.");
+      return;
+    }
+
     const { error: insertError } = await supabase.from("startups").insert({
+      user_id: user.id,
       name: name.trim(),
       short_description: shortDescription.trim(),
       cause_of_death: causeOfDeath,
@@ -87,6 +114,14 @@ export function SubmitStartupForm() {
           role="alert"
         >
           {error}
+          {needsAuth ? (
+            <Link
+              href="/auth"
+              className="ml-3 inline-flex items-center rounded-lg border border-orange-500/60 bg-orange-500/15 px-3 py-1 text-xs font-semibold text-orange-200 transition hover:bg-orange-500/25"
+            >
+              Go to /auth
+            </Link>
+          ) : null}
         </p>
       ) : null}
 
