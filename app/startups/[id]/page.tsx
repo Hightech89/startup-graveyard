@@ -2,22 +2,34 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AuthStatus } from "@/components/auth-status";
+import { StartupComments } from "@/components/startup-comments";
 import { StartupDetailClient } from "@/components/startup-detail-client";
+import { getStartupComments } from "@/src/lib/comments";
 import { getStartupById } from "@/src/lib/startups";
 
-export const metadata: Metadata = {
-  title: "Startup · Startup Graveyard",
-  description: "Startup details.",
+export const dynamic = "force-dynamic";
+
+type PageProps = {
+  params: Promise<{ id: string }>;
 };
 
-export default async function StartupPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const startup = await getStartupById(params.id);
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const startup = await getStartupById(id);
+  if (!startup) return { title: "Not found · Startup Graveyard" };
+  return {
+    title: `${startup.name} · Startup Graveyard`,
+    description: startup.shortDescription,
+  };
+}
+
+export default async function StartupPage({ params }: PageProps) {
+  const { id } = await params;
+  const startup = await getStartupById(id);
 
   if (!startup) notFound();
+
+  const comments = await getStartupComments(startup.id);
 
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-50">
@@ -43,8 +55,13 @@ export default async function StartupPage({
 
       <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <StartupDetailClient startup={startup} />
+        <div className="mx-auto max-w-3xl">
+          <StartupComments
+            startupId={startup.id}
+            initialComments={comments}
+          />
+        </div>
       </main>
     </div>
   );
 }
-
