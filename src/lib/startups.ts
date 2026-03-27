@@ -60,6 +60,23 @@ export async function getStartups(): Promise<Startup[]> {
   return startups.map((s) => mapRow(s, voteCounts[s.id] ?? 0));
 }
 
+export async function getStartupsByUserId(userId: string): Promise<Startup[]> {
+  const { data, error } = await supabase
+    .from("startups")
+    .select(
+      "id, name, short_description, cause_of_death, final_lesson, tags, created_at",
+    )
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+
+  const startups = data as StartupRow[];
+  const voteCounts = await getStartupVoteCounts(startups.map((s) => s.id));
+
+  return startups.map((s) => mapRow(s, voteCounts[s.id] ?? 0));
+}
+
 export async function getStartupById(id: string): Promise<Startup | null> {
   const { data, error } = await supabase
     .from("startups")

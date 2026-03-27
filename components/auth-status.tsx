@@ -63,6 +63,12 @@ export function AuthStatus() {
 
   return (
     <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
+      <Link
+        href="/profile"
+        className="text-sm font-semibold text-orange-400 hover:text-orange-300"
+      >
+        Profile
+      </Link>
       <p className="text-sm text-zinc-300">{user.email}</p>
       <button
         type="button"
