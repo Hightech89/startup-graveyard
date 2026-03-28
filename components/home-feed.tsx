@@ -25,7 +25,7 @@ function matchesQuery(startup: Startup, q: string) {
 export function HomeFeed({ startups }: HomeFeedProps) {
   const [query, setQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [sort, setSort] = useState<"top" | "az">("top");
+  const [sort, setSort] = useState<"newest" | "top" | "az">("top");
   const [userVotedStartupIds, setUserVotedStartupIds] = useState<Set<string>>(
     new Set(),
   );
@@ -46,6 +46,14 @@ export function HomeFeed({ startups }: HomeFeedProps) {
     const tagged = selectedTag ? base.filter((s) => s.tags.includes(selectedTag)) : base;
     const sorted = [...tagged].sort((a, b) => {
       if (sort === "az") return a.name.localeCompare(b.name);
+      if (sort === "newest") {
+        const ta = new Date(a.createdAt).getTime();
+        const tb = new Date(b.createdAt).getTime();
+        return (
+          (Number.isNaN(tb) ? 0 : tb) - (Number.isNaN(ta) ? 0 : ta)
+        );
+      }
+      // Top: upvotes on Startup are vote counts from startup_votes (see getStartups).
       return b.upvotes - a.upvotes;
     });
     return sorted;
@@ -192,11 +200,15 @@ export function HomeFeed({ startups }: HomeFeedProps) {
                 <select
                   id="sort"
                   value={sort}
-                  onChange={(e) => setSort(e.target.value as "top" | "az")}
+                  onChange={(e) =>
+                    setSort(e.target.value as "newest" | "top" | "az")
+                  }
                   className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-50 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"
+                  aria-label="Sort startups"
                 >
-                  <option value="top">Most upvoted</option>
-                  <option value="az">A-Z</option>
+                  <option value="newest">Newest</option>
+                  <option value="top">Top</option>
+                  <option value="az">A–Z</option>
                 </select>
               </div>
             </div>
