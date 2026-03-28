@@ -29,6 +29,10 @@ export function HomeFeed({ startups }: HomeFeedProps) {
   const [userVotedStartupIds, setUserVotedStartupIds] = useState<Set<string>>(
     new Set(),
   );
+  /** Client-fetched totals; server often sees 0 because RLS hides startup_votes from the anon server client. */
+  const [clientVoteCounts, setClientVoteCounts] = useState<
+    Record<string, number> | null
+  >(null);
 
   const allTags = useMemo(() => {
     const counts = new Map<string, number>();
@@ -62,42 +66,159 @@ export function HomeFeed({ startups }: HomeFeedProps) {
   useEffect(() => {
     let mounted = true;
 
-    async function loadVotedIds() {
-      // Default to empty state for logged-out users.
-      const { data } = await supabase.auth.getUser();
-      const user = data.user;
+    async function loadVoteState() {
+      const ids = [
+        ...new Set(
+          startups
+            .map((s) => String(s.id))
+            .filter((id) => id.length > 0),
+        ),
+      ];
+
+      if (ids.length === 0) {
+        if (mounted) {
+          setClientVoteCounts(null);
+          setUserVotedStartupIds(new Set());
+        }
+        return;
+      }
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (!mounted) return;
 
-      if (!user) {
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[vote:home] startup ids (raw → string)", {
+          sample: ids.slice(0, 5),
+          totalStartups: ids.length,
+        });
+      }
+
+      // Total votes per startup (no user filter). Uses the browser client JWT when logged in.
+      const {
+        data: allVoteRows,
+        error: allVotesError,
+      } = await supabase
+        .from("startup_votes")
+        .select("startup_id")
+        .in("startup_id", ids);
+
+      if (!mounted) return;
+
+      const idAllow = new Set(ids);
+      let countsPayload: Record<string, number> | null = null;
+
+      if (allVotesError || !allVoteRows) {
+        if (process.env.NODE_ENV === "development") {
+          const rows = (allVoteRows ?? []) as { startup_id: unknown }[];
+          console.debug("[vote:home] total vote rows query", {
+            error: allVotesError?.message ?? null,
+            rowCount: rows.length,
+            rawSample: rows.slice(0, 3).map((r) => r.startup_id),
+          });
+        }
+      } else {
+        const totals: Record<string, number> = {};
+        if (process.env.NODE_ENV === "development") {
+          console.debug("[vote:home] total vote rows (raw startup_id)", {
+            rowCount: allVoteRows.length,
+            sample: allVoteRows.slice(0, 8).map((r) => r.startup_id),
+          });
+        }
+        for (const row of allVoteRows) {
+          const sid =
+            row.startup_id != null ? String(row.startup_id) : "";
+          if (!sid || !idAllow.has(sid)) continue;
+          totals[sid] = (totals[sid] ?? 0) + 1;
+        }
+        if (process.env.NODE_ENV === "development") {
+          console.debug("[vote:home] clientVoteCounts map (final)", totals);
+        }
+        countsPayload = totals;
+      }
+
+      setClientVoteCounts(countsPayload);
+
+      if (userError || !user) {
         setUserVotedStartupIds(new Set());
         return;
       }
 
-      const ids = startups.map((s) => s.id);
-      if (ids.length === 0) {
-        setUserVotedStartupIds(new Set());
-        return;
-      }
-      const { data: votes } = await supabase
+      const { data: myVoteRows, error: myVotesError } = await supabase
         .from("startup_votes")
         .select("startup_id")
         .eq("user_id", user.id)
         .in("startup_id", ids);
 
       if (!mounted) return;
-      if (!votes) {
+
+      if (myVotesError || !myVoteRows) {
+        if (process.env.NODE_ENV === "development") {
+          console.debug("[vote:home] my votes query", {
+            userId: user.id,
+            error: myVotesError?.message ?? null,
+          });
+        }
         setUserVotedStartupIds(new Set());
         return;
       }
 
-      setUserVotedStartupIds(new Set(votes.map((v) => v.startup_id)));
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[vote:home] my vote rows (raw startup_id)", {
+          userId: user.id,
+          rows: myVoteRows.map((r) => r.startup_id),
+        });
+      }
+
+      const voted = new Set<string>();
+      for (const row of myVoteRows) {
+        const sid =
+          row.startup_id != null ? String(row.startup_id) : "";
+        if (sid && idAllow.has(sid)) voted.add(sid);
+      }
+
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[vote:home] userVotedStartupIds (final)", [
+          ...voted,
+        ]);
+      }
+
+      setUserVotedStartupIds(voted);
     }
 
-    loadVotedIds();
+    void loadVoteState();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
+      void loadVoteState();
+    });
+
     return () => {
       mounted = false;
+      authListener.subscription.unsubscribe();
     };
   }, [startups]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    if (startups.length === 0) return;
+    for (const s of filtered.slice(0, 20)) {
+      const id = String(s.id);
+      const count =
+        clientVoteCounts == null
+          ? s.upvotes
+          : (clientVoteCounts[id] ?? 0);
+      const hasVoted = userVotedStartupIds.has(id);
+      console.debug("[vote:home] card", {
+        startupId: id,
+        voteCount: count,
+        hasVoted,
+        serverUpvotes: s.upvotes,
+        clientMapLoaded: clientVoteCounts != null,
+      });
+    }
+  }, [filtered, startups.length, userVotedStartupIds, clientVoteCounts]);
 
   return (
     <div className="min-h-full bg-zinc-950 text-zinc-50">
@@ -234,14 +355,21 @@ export function HomeFeed({ startups }: HomeFeedProps) {
           </p>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
-            {filtered.map((startup) => (
-              <li key={startup.id}>
-                <StartupCard
-                  startup={startup}
-                  userHasVoted={userVotedStartupIds.has(startup.id)}
-                />
-              </li>
-            ))}
+            {filtered.map((startup) => {
+              const id = String(startup.id);
+              const displayVotes =
+                clientVoteCounts == null
+                  ? startup.upvotes
+                  : (clientVoteCounts[id] ?? 0);
+              return (
+                <li key={startup.id}>
+                  <StartupCard
+                    startup={{ ...startup, upvotes: displayVotes }}
+                    userHasVoted={userVotedStartupIds.has(id)}
+                  />
+                </li>
+              );
+            })}
           </ul>
         )}
       </main>

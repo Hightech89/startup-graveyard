@@ -24,10 +24,10 @@ export function StartupCard({ startup, userHasVoted = false }: StartupCardProps)
           </h3>
           <div className="relative z-20 shrink-0 pointer-events-auto">
             <StartupVoteButton
-              key={userHasVoted ? `${startup.id}:v` : `${startup.id}:n`}
+              key={`vote-${startup.id}`}
               startupId={startup.id}
-              count={startup.upvotes}
-              initialHasVoted={userHasVoted}
+              voteCount={startup.upvotes}
+              hasVoted={userHasVoted === true}
             />
           </div>
         </div>

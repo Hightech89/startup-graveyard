@@ -57,15 +57,34 @@ export function ProfileView() {
 
       if (list.length === 0) return;
 
-      const ids = list.map((s) => s.id);
-      const { data: votes } = await supabase
+      const ids = [
+        ...new Set(
+          list
+            .map((s) => String(s.id))
+            .filter((id) => id.length > 0),
+        ),
+      ];
+
+      const { data: votes, error: votesError } = await supabase
         .from("startup_votes")
         .select("startup_id")
         .eq("user_id", user.id)
         .in("startup_id", ids);
 
       if (!mounted) return;
-      setVotedIds(new Set(votes?.map((v) => v.startup_id) ?? []));
+
+      if (votesError || !votes) {
+        setVotedIds(new Set());
+        return;
+      }
+
+      setVotedIds(
+        new Set(
+          votes
+            .map((v) => (v.startup_id != null ? String(v.startup_id) : ""))
+            .filter(Boolean),
+        ),
+      );
     })();
 
     return () => {
@@ -125,7 +144,7 @@ export function ProfileView() {
               <li key={s.id}>
                 <StartupCard
                   startup={s}
-                  userHasVoted={votedIds.has(s.id)}
+                  userHasVoted={votedIds.has(String(s.id))}
                 />
               </li>
             ))}

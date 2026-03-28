@@ -13,7 +13,7 @@ type StartupRow = {
 
 function mapRow(row: StartupRow, upvotes: number): Startup {
   return {
-    id: row.id,
+    id: String(row.id),
     name: row.name,
     shortDescription: row.short_description,
     causeOfDeath: row.cause_of_death,
@@ -27,18 +27,30 @@ function mapRow(row: StartupRow, upvotes: number): Startup {
 async function getStartupVoteCounts(
   startupIds: string[],
 ): Promise<Record<string, number>> {
-  if (startupIds.length === 0) return {};
+  const normalizedIds = [
+    ...new Set(
+      startupIds.map((id) => String(id)).filter((id) => id.length > 0),
+    ),
+  ];
+  if (normalizedIds.length === 0) return {};
 
   const { data, error } = await supabase
     .from("startup_votes")
     .select("startup_id")
-    .in("startup_id", startupIds);
+    .in("startup_id", normalizedIds);
 
-  if (error || !data) return {};
+  if (error || !data) {
+    if (process.env.NODE_ENV === "development" && error) {
+      console.warn("[vote] getStartupVoteCounts failed:", error.message);
+    }
+    return {};
+  }
 
   const counts: Record<string, number> = {};
   for (const row of data) {
-    const key = row.startup_id;
+    const key =
+      row.startup_id != null ? String(row.startup_id) : "";
+    if (!key) continue;
     counts[key] = (counts[key] ?? 0) + 1;
   }
 
@@ -55,9 +67,22 @@ export async function getStartups(): Promise<Startup[]> {
   if (error || !data) return [];
 
   const startups = data as StartupRow[];
-  const voteCounts = await getStartupVoteCounts(startups.map((s) => s.id));
+  const voteCounts = await getStartupVoteCounts(
+    startups.map((s) => String(s.id)),
+  );
 
-  return startups.map((s) => mapRow(s, voteCounts[s.id] ?? 0));
+  if (process.env.NODE_ENV === "development" && startups.length > 0) {
+    const keys = Object.keys(voteCounts);
+    console.debug("[vote:server] getStartups", {
+      startupIdsSample: startups.slice(0, 5).map((s) => s.id),
+      voteCountKeysSample: keys.slice(0, 5),
+      voteCountMapSize: keys.length,
+    });
+  }
+
+  return startups.map((s) =>
+    mapRow(s, voteCounts[String(s.id)] ?? 0),
+  );
 }
 
 export async function getStartupsByUserId(userId: string): Promise<Startup[]> {
@@ -72,9 +97,13 @@ export async function getStartupsByUserId(userId: string): Promise<Startup[]> {
   if (error || !data) return [];
 
   const startups = data as StartupRow[];
-  const voteCounts = await getStartupVoteCounts(startups.map((s) => s.id));
+  const voteCounts = await getStartupVoteCounts(
+    startups.map((s) => String(s.id)),
+  );
 
-  return startups.map((s) => mapRow(s, voteCounts[s.id] ?? 0));
+  return startups.map((s) =>
+    mapRow(s, voteCounts[String(s.id)] ?? 0),
+  );
 }
 
 export async function getStartupById(id: string): Promise<Startup | null> {
@@ -88,7 +117,9 @@ export async function getStartupById(id: string): Promise<Startup | null> {
 
   if (error || !data) return null;
 
-  const voteCounts = await getStartupVoteCounts([id]);
+  const row = data as StartupRow;
+  const idKey = String(row.id);
+  const voteCounts = await getStartupVoteCounts([idKey]);
 
-  return mapRow(data as StartupRow, voteCounts[id] ?? 0);
+  return mapRow(row, voteCounts[idKey] ?? 0);
 }

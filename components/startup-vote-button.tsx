@@ -1,25 +1,48 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
 
 type StartupVoteButtonProps = {
   startupId: string;
-  count: number;
-  initialHasVoted?: boolean;
+  voteCount: number;
+  hasVoted: boolean;
 };
 
 export function StartupVoteButton({
   startupId,
-  count,
-  initialHasVoted = false,
+  voteCount: voteCountProp,
+  hasVoted: hasVotedProp,
 }: StartupVoteButtonProps) {
-  const [hasVoted, setHasVoted] = useState(initialHasVoted);
-  const [voteCount, setVoteCount] = useState(count);
+  const hasVotedFromParent = hasVotedProp === true;
+
+  const [hasVoted, setHasVoted] = useState(hasVotedFromParent);
+  const [voteCount, setVoteCount] = useState(voteCountProp);
   const [voting, setVoting] = useState(false);
   const [authPrompt, setAuthPrompt] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setVoteCount(voteCountProp);
+  }, [startupId, voteCountProp]);
+
+  useEffect(() => {
+    setHasVoted(hasVotedProp === true);
+  }, [hasVotedProp]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    void supabase.auth.getUser().then(({ data: { user } }) => {
+      console.debug("[vote:button]", {
+        startupId,
+        voteCountProp,
+        hasVotedProp,
+        hasVotedStrict: hasVotedProp === true,
+        userId: user?.id ?? null,
+      });
+    });
+  }, [startupId, voteCountProp, hasVotedProp]);
 
   async function handleToggleVote() {
     if (voting) return;
@@ -38,14 +61,22 @@ export function StartupVoteButton({
       return;
     }
 
+    const idKey = String(startupId);
+
     const { data: existingVote, error: existingError } = await supabase
       .from("startup_votes")
       .select("id")
-      .eq("startup_id", startupId)
+      .eq("startup_id", idKey)
       .eq("user_id", user.id)
       .maybeSingle();
 
     if (existingError) {
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[vote] toggle read error", {
+          startupId: idKey,
+          error: existingError.message,
+        });
+      }
       setVoting(false);
       setActionError("Unable to update vote. Please try again.");
       return;
@@ -55,10 +86,16 @@ export function StartupVoteButton({
       const { error: deleteError } = await supabase
         .from("startup_votes")
         .delete()
-        .eq("startup_id", startupId)
+        .eq("startup_id", idKey)
         .eq("user_id", user.id);
 
       if (deleteError) {
+        if (process.env.NODE_ENV === "development") {
+          console.debug("[vote] delete error", {
+            startupId: idKey,
+            error: deleteError.message,
+          });
+        }
         setVoting(false);
         setActionError("Unable to remove vote. Please try again.");
         return;
@@ -73,11 +110,17 @@ export function StartupVoteButton({
     const { error: insertError } = await supabase
       .from("startup_votes")
       .insert({
-        startup_id: startupId,
+        startup_id: idKey,
         user_id: user.id,
       });
 
     if (insertError) {
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[vote] insert error", {
+          startupId: idKey,
+          error: insertError.message,
+        });
+      }
       setVoting(false);
       setActionError("Unable to add vote. Please try again.");
       return;
