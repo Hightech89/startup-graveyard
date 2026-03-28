@@ -3,6 +3,7 @@ import { supabase } from "./supabase";
 
 type StartupRow = {
   id: string;
+  user_id?: string | null;
   name: string;
   short_description: string;
   cause_of_death: string;
@@ -14,6 +15,7 @@ type StartupRow = {
 function mapRow(row: StartupRow, upvotes: number): Startup {
   return {
     id: String(row.id),
+    userId: row.user_id ?? undefined,
     name: row.name,
     shortDescription: row.short_description,
     causeOfDeath: row.cause_of_death,
@@ -89,7 +91,7 @@ export async function getStartupsByUserId(userId: string): Promise<Startup[]> {
   const { data, error } = await supabase
     .from("startups")
     .select(
-      "id, name, short_description, cause_of_death, final_lesson, tags, created_at",
+      "id, user_id, name, short_description, cause_of_death, final_lesson, tags, created_at",
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -110,7 +112,7 @@ export async function getStartupById(id: string): Promise<Startup | null> {
   const { data, error } = await supabase
     .from("startups")
     .select(
-      "id, name, short_description, cause_of_death, final_lesson, tags, created_at",
+      "id, user_id, name, short_description, cause_of_death, final_lesson, tags, created_at",
     )
     .eq("id", id)
     .single();

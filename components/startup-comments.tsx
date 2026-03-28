@@ -47,6 +47,162 @@ function friendlyInsertError(): string {
   return "Couldn't post your comment. Please try again.";
 }
 
+function friendlyUpdateError(): string {
+  return "Couldn't update your comment. Please try again.";
+}
+
+function friendlyDeleteError(): string {
+  return "Couldn't delete your comment. Please try again.";
+}
+
+const subtleActionClass =
+  "text-xs font-medium text-zinc-500 underline-offset-2 transition hover:text-zinc-300 hover:underline";
+
+type CommentRowProps = {
+  comment: StartupComment;
+  authorLine: string;
+  when: string | null;
+  isOwner: boolean;
+  isEditing: boolean;
+  editValue: string;
+  onEditValueChange: (value: string) => void;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
+  onSaveEdit: () => void;
+  saveDisabled: boolean;
+  isSaving: boolean;
+  showDeleteConfirm: boolean;
+  onRequestDelete: () => void;
+  onCancelDeleteConfirm: () => void;
+  onConfirmDelete: () => void;
+  isDeleting: boolean;
+};
+
+function CommentRow({
+  comment,
+  authorLine,
+  when,
+  isOwner,
+  isEditing,
+  editValue,
+  onEditValueChange,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
+  saveDisabled,
+  isSaving,
+  showDeleteConfirm,
+  onRequestDelete,
+  onCancelDeleteConfirm,
+  onConfirmDelete,
+  isDeleting,
+}: CommentRowProps) {
+  return (
+    <li className="py-4 first:pt-0 last:pb-0">
+      {isEditing ? (
+        <div className="space-y-3">
+          <textarea
+            value={editValue}
+            onChange={(e) => onEditValueChange(e.target.value)}
+            rows={4}
+            maxLength={MAX_LENGTH}
+            disabled={isSaving}
+            aria-label="Edit comment"
+            className={`${inputClass} min-h-[6rem] resize-y disabled:opacity-60`}
+          />
+          <p className="text-right text-xs tabular-nums text-zinc-500">
+            {editValue.length}/{MAX_LENGTH}
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={onSaveEdit}
+              disabled={saveDisabled || isSaving}
+              className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold text-zinc-950 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSaving ? "Saving…" : "Save"}
+            </button>
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              disabled={isSaving}
+              className="rounded-lg border border-zinc-700 bg-zinc-900/60 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm leading-relaxed text-zinc-200">
+            {comment.content}
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
+            <span className="font-medium text-zinc-400">{authorLine}</span>
+            {when ? (
+              <>
+                <span className="text-zinc-600" aria-hidden>
+                  ·
+                </span>
+                <time dateTime={comment.createdAt}>{when}</time>
+              </>
+            ) : null}
+            {isOwner ? (
+              <>
+                <span className="text-zinc-600" aria-hidden>
+                  ·
+                </span>
+                <button
+                  type="button"
+                  onClick={onStartEdit}
+                  disabled={isDeleting || showDeleteConfirm}
+                  className={subtleActionClass}
+                >
+                  Edit
+                </button>
+                <span className="text-zinc-600" aria-hidden>
+                  ·
+                </span>
+                <button
+                  type="button"
+                  onClick={onRequestDelete}
+                  disabled={isDeleting || showDeleteConfirm}
+                  className={`${subtleActionClass} hover:text-red-300`}
+                >
+                  Delete
+                </button>
+              </>
+            ) : null}
+          </div>
+          {showDeleteConfirm ? (
+            <div className="mt-3 rounded-xl border border-zinc-700 bg-zinc-950/50 px-3 py-3">
+              <p className="text-xs text-zinc-400">Delete this comment?</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={onConfirmDelete}
+                  disabled={isDeleting}
+                  className="rounded-lg bg-red-600/90 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isDeleting ? "Deleting…" : "Delete"}
+                </button>
+                <button
+                  type="button"
+                  onClick={onCancelDeleteConfirm}
+                  disabled={isDeleting}
+                  className="rounded-lg border border-zinc-700 bg-zinc-900/60 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </>
+      )}
+    </li>
+  );
+}
+
 export function StartupComments({
   startupId,
   initialComments,
@@ -58,6 +214,11 @@ export function StartupComments({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listRefreshing, setListRefreshing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const reloadComments = useCallback(async () => {
     setListRefreshing(true);
@@ -153,6 +314,109 @@ export function StartupComments({
     await reloadComments();
   }
 
+  async function handleSaveEdit(commentId: string) {
+    const trimmed = editDraft.trim();
+    if (!trimmed) {
+      showToast("Please write something before saving.", "error");
+      return;
+    }
+    if (trimmed.length > MAX_LENGTH) {
+      showToast(`Comments are limited to ${MAX_LENGTH} characters.`, "error");
+      return;
+    }
+
+    setSavingId(commentId);
+
+    const {
+      data: { user: current },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    const sessionMissing =
+      !!userError &&
+      /auth session missing|session missing/i.test(userError.message);
+
+    if (!current || sessionMissing) {
+      setSavingId(null);
+      showToast("You must be logged in to do that.", "error");
+      return;
+    }
+
+    if (userError) {
+      setSavingId(null);
+      showToast("Something went wrong. Try again.", "error");
+      return;
+    }
+
+    const { data: updatedRows, error: updateError } = await supabase
+      .from("startup_comments")
+      .update({ content: trimmed })
+      .eq("id", commentId)
+      .eq("user_id", current.id)
+      .select("id");
+
+    setSavingId(null);
+
+    if (updateError || !updatedRows?.length) {
+      showToast(friendlyUpdateError(), "error");
+      return;
+    }
+
+    setEditingId(null);
+    setEditDraft("");
+    showToast("Comment updated");
+    await reloadComments();
+  }
+
+  async function handleConfirmDelete(commentId: string) {
+    setDeletingId(commentId);
+
+    const {
+      data: { user: current },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    const sessionMissing =
+      !!userError &&
+      /auth session missing|session missing/i.test(userError.message);
+
+    if (!current || sessionMissing) {
+      setDeletingId(null);
+      setPendingDeleteId(null);
+      showToast("You must be logged in to do that.", "error");
+      return;
+    }
+
+    if (userError) {
+      setDeletingId(null);
+      showToast("Something went wrong. Try again.", "error");
+      return;
+    }
+
+    const { data: deletedRows, error: deleteError } = await supabase
+      .from("startup_comments")
+      .delete()
+      .eq("id", commentId)
+      .eq("user_id", current.id)
+      .select("id");
+
+    setDeletingId(null);
+    setPendingDeleteId(null);
+
+    if (deleteError || !deletedRows?.length) {
+      showToast(friendlyDeleteError(), "error");
+      return;
+    }
+
+    if (editingId === commentId) {
+      setEditingId(null);
+      setEditDraft("");
+    }
+
+    showToast("Comment deleted");
+    await reloadComments();
+  }
+
   const loggedIn = !!user;
   const length = body.length;
 
@@ -192,25 +456,42 @@ export function StartupComments({
           <ul className="space-y-0 divide-y divide-zinc-800/90">
             {comments.map((c) => {
               const when = formatCommentDate(c.createdAt);
+              const isOwner = !!user && c.userId === user.id;
+              const isEditing = editingId === c.id;
               return (
-                <li key={c.id} className="py-4 first:pt-0 last:pb-0">
-                  <p className="text-sm leading-relaxed text-zinc-200">
-                    {c.content}
-                  </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-zinc-500">
-                    <span className="font-medium text-zinc-400">
-                      {authorLabel(c, user)}
-                    </span>
-                    {when ? (
-                      <>
-                        <span className="text-zinc-600" aria-hidden>
-                          ·
-                        </span>
-                        <time dateTime={c.createdAt}>{when}</time>
-                      </>
-                    ) : null}
-                  </div>
-                </li>
+                <CommentRow
+                  key={c.id}
+                  comment={c}
+                  authorLine={authorLabel(c, user)}
+                  when={when}
+                  isOwner={isOwner}
+                  isEditing={isEditing}
+                  editValue={isEditing ? editDraft : ""}
+                  onEditValueChange={setEditDraft}
+                  onStartEdit={() => {
+                    setPendingDeleteId(null);
+                    setEditingId(c.id);
+                    setEditDraft(c.content);
+                  }}
+                  onCancelEdit={() => {
+                    setEditingId(null);
+                    setEditDraft("");
+                  }}
+                  onSaveEdit={() => handleSaveEdit(c.id)}
+                  saveDisabled={
+                    !editDraft.trim() || editDraft.trim().length > MAX_LENGTH
+                  }
+                  isSaving={savingId === c.id}
+                  showDeleteConfirm={pendingDeleteId === c.id}
+                  onRequestDelete={() => {
+                    setEditingId(null);
+                    setEditDraft("");
+                    setPendingDeleteId(c.id);
+                  }}
+                  onCancelDeleteConfirm={() => setPendingDeleteId(null)}
+                  onConfirmDelete={() => handleConfirmDelete(c.id)}
+                  isDeleting={deletingId === c.id}
+                />
               );
             })}
           </ul>

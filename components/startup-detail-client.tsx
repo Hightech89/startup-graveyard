@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Startup } from "@/types/startup";
 import { supabase } from "@/src/lib/supabase";
 import { StartupCard } from "./startup-card";
+import { StartupOwnerActions } from "./startup-owner-actions";
 
 export function StartupDetailClient({ startup }: { startup: Startup }) {
   const [userHasVoted, setUserHasVoted] = useState(false);
@@ -93,10 +94,18 @@ export function StartupDetailClient({ startup }: { startup: Startup }) {
   };
 
   return (
-    <StartupCard
-      startup={displayStartup}
-      userHasVoted={userHasVoted === true}
-    />
+    <div className="space-y-4">
+      {startup.userId ? (
+        <StartupOwnerActions
+          startupId={startup.id}
+          ownerUserId={startup.userId}
+        />
+      ) : null}
+      <StartupCard
+        startup={displayStartup}
+        userHasVoted={userHasVoted === true}
+      />
+    </div>
   );
 }
 

@@ -3,32 +3,44 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useToast } from "@/components/toast-context";
+import type { Startup } from "@/types/startup";
 import { StartupFormFields } from "@/components/startup-form-fields";
+import { useToast } from "@/components/toast-context";
 import {
   computeCauseOfDeath,
+  initialCauseFields,
   tagsFromInput,
   validateStartupFields,
 } from "@/src/lib/startup-form";
 import { supabase } from "@/src/lib/supabase";
 
-export function SubmitStartupForm() {
+type EditStartupFormProps = {
+  startup: Startup;
+};
+
+function friendlyUpdateError(): string {
+  return "Couldn't save changes. Please try again.";
+}
+
+export function EditStartupForm({ startup }: EditStartupFormProps) {
   const showToast = useToast();
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [shortDescription, setShortDescription] = useState("");
-  const [causePreset, setCausePreset] = useState<string>("Ran out of funding");
-  const [causeCustom, setCauseCustom] = useState("");
-  const [finalLesson, setFinalLesson] = useState("");
-  const [tagsInput, setTagsInput] = useState("");
+  const causeInit = initialCauseFields(startup.causeOfDeath);
+
+  const [name, setName] = useState(startup.name);
+  const [shortDescription, setShortDescription] = useState(
+    startup.shortDescription,
+  );
+  const [causePreset, setCausePreset] = useState(causeInit.preset);
+  const [causeCustom, setCauseCustom] = useState(causeInit.custom);
+  const [finalLesson, setFinalLesson] = useState(startup.finalLesson);
+  const [tagsInput, setTagsInput] = useState(startup.tags.join(", "));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [needsAuth, setNeedsAuth] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setNeedsAuth(false);
 
     const causeOfDeath = computeCauseOfDeath(
       causePreset,
@@ -61,39 +73,45 @@ export function SubmitStartupForm() {
 
     if (!user || sessionMissing) {
       setLoading(false);
-      setNeedsAuth(true);
-      setError("You must be logged in to submit a startup.");
       showToast("You must be logged in to do that.", "error");
       return;
     }
 
     if (userError) {
       setLoading(false);
-      setError("Unable to verify your session. Please try again.");
       showToast("Something went wrong. Try again.", "error");
       return;
     }
 
-    const { error: insertError } = await supabase.from("startups").insert({
-      user_id: user.id,
-      name: name.trim(),
-      short_description: shortDescription.trim(),
-      cause_of_death: causeOfDeath,
-      final_lesson: finalLesson.trim(),
-      tags,
-      upvotes: 0,
-    });
+    if (startup.userId && user.id !== startup.userId) {
+      setLoading(false);
+      showToast("You can't edit this startup.", "error");
+      return;
+    }
+
+    const { data: updated, error: updateError } = await supabase
+      .from("startups")
+      .update({
+        name: name.trim(),
+        short_description: shortDescription.trim(),
+        cause_of_death: causeOfDeath,
+        final_lesson: finalLesson.trim(),
+        tags,
+      })
+      .eq("id", startup.id)
+      .eq("user_id", user.id)
+      .select("id");
 
     setLoading(false);
 
-    if (insertError) {
-      setError("Something went wrong. Try again.");
-      showToast("Something went wrong. Try again.", "error");
+    if (updateError || !updated?.length) {
+      setError(friendlyUpdateError());
+      showToast(friendlyUpdateError(), "error");
       return;
     }
 
-    showToast("Startup submitted");
-    router.push("/");
+    showToast("Startup updated");
+    router.push(`/startups/${startup.id}`);
     router.refresh();
   }
 
@@ -105,18 +123,11 @@ export function SubmitStartupForm() {
           role="alert"
         >
           {error}
-          {needsAuth ? (
-            <Link
-              href="/auth"
-              className="ml-3 inline-flex items-center rounded-lg border border-orange-500/60 bg-orange-500/15 px-3 py-1 text-xs font-semibold text-orange-200 transition hover:bg-orange-500/25"
-            >
-              Go to /auth
-            </Link>
-          ) : null}
         </p>
       ) : null}
 
       <StartupFormFields
+        idPrefix="edit-"
         disabled={loading}
         name={name}
         onNameChange={setName}
@@ -138,10 +149,10 @@ export function SubmitStartupForm() {
           disabled={loading}
           className="rounded-xl border border-orange-500/60 bg-orange-500/15 px-5 py-2.5 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/25 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? "Submitting…" : "Submit startup"}
+          {loading ? "Saving…" : "Save changes"}
         </button>
         <Link
-          href="/"
+          href={`/startups/${startup.id}`}
           className="text-sm font-medium text-zinc-400 hover:text-zinc-200"
         >
           Cancel

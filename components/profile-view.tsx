@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import type { Startup } from "@/types/startup";
 import { getStartupsByUserId } from "@/src/lib/startups";
@@ -16,6 +16,7 @@ import {
   ProfileSubmissionsGridSkeleton,
 } from "@/components/page-skeletons";
 import { StartupCard } from "./startup-card";
+import { StartupOwnerActions } from "./startup-owner-actions";
 
 export function ProfileView() {
   const [user, setUser] = useState<User | null>(null);
@@ -48,23 +49,17 @@ export function ProfileView() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!user) {
-      setStartups([]);
-      setVotedIds(new Set());
-      return;
-    }
-
-    let mounted = true;
+  const reloadSubmissions = useCallback(async () => {
+    if (!user) return;
     setLoadingStartups(true);
-
-    (async () => {
+    try {
       const list = await getStartupsByUserId(user.id);
-      if (!mounted) return;
       setStartups(list);
-      setLoadingStartups(false);
 
-      if (list.length === 0) return;
+      if (list.length === 0) {
+        setVotedIds(new Set());
+        return;
+      }
 
       const ids = [
         ...new Set(
@@ -80,8 +75,6 @@ export function ProfileView() {
         .eq("user_id", user.id)
         .in("startup_id", ids);
 
-      if (!mounted) return;
-
       if (votesError || !votes) {
         setVotedIds(new Set());
         return;
@@ -94,12 +87,20 @@ export function ProfileView() {
             .filter(Boolean),
         ),
       );
-    })();
-
-    return () => {
-      mounted = false;
-    };
+    } finally {
+      setLoadingStartups(false);
+    }
   }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setStartups([]);
+      setVotedIds(new Set());
+      return;
+    }
+
+    void reloadSubmissions();
+  }, [user, reloadSubmissions]);
 
   if (loading) {
     return <ProfileContentSkeleton />;
@@ -157,7 +158,14 @@ export function ProfileView() {
         ) : (
           <ul className="mt-6 grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
             {startups.map((s) => (
-              <li key={s.id}>
+              <li key={s.id} className="space-y-2">
+                {s.userId ? (
+                  <StartupOwnerActions
+                    startupId={s.id}
+                    ownerUserId={s.userId}
+                    onDeleted={reloadSubmissions}
+                  />
+                ) : null}
                 <StartupCard
                   startup={s}
                   userHasVoted={votedIds.has(String(s.id))}
