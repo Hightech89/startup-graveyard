@@ -4,6 +4,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import type { StartupComment } from "@/types/comment";
+import {
+  EmptyIconComments,
+  EmptyState,
+} from "@/components/empty-state";
+import { navSecondaryLinkClass } from "@/components/nav-actions";
+import { CommentsListSkeleton } from "@/components/page-skeletons";
+import { useToast } from "@/components/toast-context";
 import { getStartupComments } from "@/src/lib/comments";
 import { supabase } from "@/src/lib/supabase";
 
@@ -44,15 +51,22 @@ export function StartupComments({
   startupId,
   initialComments,
 }: StartupCommentsProps) {
+  const showToast = useToast();
   const [comments, setComments] = useState<StartupComment[]>(initialComments);
   const [user, setUser] = useState<User | null>(null);
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [listRefreshing, setListRefreshing] = useState(false);
 
   const reloadComments = useCallback(async () => {
-    const next = await getStartupComments(startupId);
-    setComments(next);
+    setListRefreshing(true);
+    try {
+      const next = await getStartupComments(startupId);
+      setComments(next);
+    } finally {
+      setListRefreshing(false);
+    }
   }, [startupId]);
 
   useEffect(() => {
@@ -109,12 +123,14 @@ export function StartupComments({
     if (!current || sessionMissing) {
       setSubmitting(false);
       setError("You need to be logged in to comment.");
+      showToast("You must be logged in to do that.", "error");
       return;
     }
 
     if (userError) {
       setSubmitting(false);
       setError("Unable to verify your session. Please try again.");
+      showToast("Something went wrong. Try again.", "error");
       return;
     }
 
@@ -128,10 +144,12 @@ export function StartupComments({
 
     if (insertError) {
       setError(friendlyInsertError());
+      showToast(friendlyInsertError(), "error");
       return;
     }
 
     setBody("");
+    showToast("Comment posted");
     await reloadComments();
   }
 
@@ -148,10 +166,28 @@ export function StartupComments({
       </h2>
 
       <div className="mt-6 space-y-4">
-        {comments.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-zinc-700/80 bg-zinc-950/40 px-4 py-6 text-center text-sm text-zinc-400">
-            No comments yet. Be the first to share your thoughts.
-          </p>
+        {listRefreshing ? (
+          <div className="min-h-[10rem]">
+            <CommentsListSkeleton />
+          </div>
+        ) : comments.length === 0 ? (
+          <EmptyState
+            className="bg-zinc-950/35"
+            icon={<EmptyIconComments />}
+            title="No comments yet"
+            description={
+              loggedIn
+                ? "Start the conversation."
+                : "Sign in to leave the first comment."
+            }
+            action={
+              loggedIn ? undefined : (
+                <Link href="/auth" className={navSecondaryLinkClass}>
+                  Log in or sign up
+                </Link>
+              )
+            }
+          />
         ) : (
           <ul className="space-y-0 divide-y divide-zinc-800/90">
             {comments.map((c) => {
@@ -181,21 +217,22 @@ export function StartupComments({
         )}
       </div>
 
-      <div className="mt-8 border-t border-zinc-700 pt-6">
-        {!loggedIn ? (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950/30 px-4 py-5 text-center">
-            <p className="text-sm text-zinc-300">
-              Sign in to join the conversation and leave a comment.
-            </p>
-            <Link
-              href="/auth"
-              className="mt-4 inline-flex items-center justify-center rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-orange-400"
-            >
-              Log in or sign up
-            </Link>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
+      {loggedIn || comments.length > 0 ? (
+        <div className="mt-8 border-t border-zinc-700 pt-6">
+          {!loggedIn ? (
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950/30 px-4 py-5 text-center">
+              <p className="text-sm text-zinc-300">
+                Sign in to join the conversation and leave a comment.
+              </p>
+              <Link
+                href="/auth"
+                className="mt-4 inline-flex items-center justify-center rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-orange-400"
+              >
+                Log in or sign up
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label
                 htmlFor="comment-body"
@@ -242,8 +279,9 @@ export function StartupComments({
               {submitting ? "Posting…" : "Post comment"}
             </button>
           </form>
-        )}
-      </div>
+          )}
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -4,10 +4,12 @@ import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { AuthStatus } from "@/components/auth-status";
+import { friendlyAuthError, useToast } from "@/components/toast-context";
 import { supabase } from "@/src/lib/supabase";
 import { useRouter } from "next/navigation";
 
 export default function AuthPage() {
+  const showToast = useToast();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loginEmail, setLoginEmail] = useState("");
@@ -16,8 +18,6 @@ export default function AuthPage() {
   const [signupPassword, setSignupPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [signupLoading, setSignupLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const redirectTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -46,8 +46,6 @@ export default function AuthPage() {
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoginLoading(true);
-    setError(null);
-    setSuccess(null);
 
     const { error: loginError } = await supabase.auth.signInWithPassword({
       email: loginEmail,
@@ -55,9 +53,9 @@ export default function AuthPage() {
     });
 
     if (loginError) {
-      setError(loginError.message);
+      showToast(friendlyAuthError(loginError.message), "error");
     } else {
-      setSuccess("Logged in successfully.");
+      showToast("Signed in");
       redirectTimeoutRef.current = window.setTimeout(() => {
         router.push("/");
       }, 1200);
@@ -69,8 +67,6 @@ export default function AuthPage() {
   async function handleSignup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSignupLoading(true);
-    setError(null);
-    setSuccess(null);
 
     const { error: signupError } = await supabase.auth.signUp({
       email: signupEmail,
@@ -78,9 +74,9 @@ export default function AuthPage() {
     });
 
     if (signupError) {
-      setError(signupError.message);
+      showToast(friendlyAuthError(signupError.message), "error");
     } else {
-      setSuccess("Sign-up successful. Check your email if confirmation is enabled.");
+      showToast("Account created. Check your email if confirmation is required.");
       redirectTimeoutRef.current = window.setTimeout(() => {
         router.push("/");
       }, 1200);
@@ -199,8 +195,6 @@ export default function AuthPage() {
           ) : (
             <p className="text-sm text-zinc-400">You are currently signed out.</p>
           )}
-          {error ? <p className="text-sm text-red-400">{error}</p> : null}
-          {success ? <p className="text-sm text-emerald-400">{success}</p> : null}
         </div>
       </main>
     </div>

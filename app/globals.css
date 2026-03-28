@@ -24,3 +24,38 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateX(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast-enter {
+  animation: toast-enter 0.22s ease-out forwards;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgb(39 39 42 / 0.35),
+    rgb(63 63 70 / 0.45),
+    rgb(39 39 42 / 0.35)
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.75s ease-in-out infinite;
+}

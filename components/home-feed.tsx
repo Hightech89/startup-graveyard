@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Startup } from "@/types/startup";
+import {
+  EmptyIconGravestone,
+  EmptyIconSearch,
+  EmptyState,
+} from "@/components/empty-state";
+import { navPrimaryLinkClass } from "@/components/nav-actions";
 import { AuthStatus } from "./auth-status";
 import { StartupCard } from "./startup-card";
 import { supabase } from "@/src/lib/supabase";
@@ -224,7 +230,7 @@ export function HomeFeed({ startups }: HomeFeedProps) {
     <div className="min-h-full bg-zinc-950 text-zinc-50">
       <header className="border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.16),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
         <div className="mx-auto max-w-5xl px-4 py-18 sm:px-6 sm:py-24">
-          <div className="mb-8 flex items-center justify-end">
+          <div className="mb-8 flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             <AuthStatus />
           </div>
           <div className="text-center">
@@ -238,14 +244,11 @@ export function HomeFeed({ startups }: HomeFeedProps) {
             <p className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-zinc-300">
               Where ideas go to die — and founders learn why.
             </p>
-            <p className="mt-5">
-              <Link
-                href="/submit"
-                className="text-sm font-semibold text-orange-400 hover:text-orange-300"
-              >
+            <div className="mt-5 flex justify-center px-1">
+              <Link href="/submit" className={navPrimaryLinkClass}>
                 Submit a startup
               </Link>
-            </p>
+            </div>
           </div>
 
           <div className="mt-10">
@@ -345,14 +348,34 @@ export function HomeFeed({ startups }: HomeFeedProps) {
           </p>
         </div>
         {startups.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 py-12 text-center text-zinc-400">
-            Nothing buried here yet. Add rows to the startups table in Supabase to
-            see them listed.
-          </p>
+          <EmptyState
+            icon={<EmptyIconGravestone />}
+            title="No startups yet"
+            description="Be the first to add one."
+            action={
+              <Link href="/submit" className={navPrimaryLinkClass}>
+                Submit a startup
+              </Link>
+            }
+          />
         ) : filtered.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 py-12 text-center text-zinc-400">
-            No matches. Try another search.
-          </p>
+          <EmptyState
+            icon={<EmptyIconSearch />}
+            title="No results found"
+            description="Try adjusting your search or filters."
+            action={
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  setSelectedTag(null);
+                }}
+                className="inline-flex min-h-10 w-full items-center justify-center rounded-full border border-zinc-600 bg-zinc-900/50 px-5 py-2 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800/60 sm:w-auto"
+              >
+                Clear search &amp; filters
+              </button>
+            }
+          />
         ) : (
           <ul className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
             {filtered.map((startup) => {

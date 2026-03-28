@@ -6,6 +6,15 @@ import type { User } from "@supabase/supabase-js";
 import type { Startup } from "@/types/startup";
 import { getStartupsByUserId } from "@/src/lib/startups";
 import { supabase } from "@/src/lib/supabase";
+import {
+  EmptyIconSubmissions,
+  EmptyState,
+} from "@/components/empty-state";
+import { navPrimaryLinkClass } from "@/components/nav-actions";
+import {
+  ProfileContentSkeleton,
+  ProfileSubmissionsGridSkeleton,
+} from "@/components/page-skeletons";
 import { StartupCard } from "./startup-card";
 
 export function ProfileView() {
@@ -93,11 +102,7 @@ export function ProfileView() {
   }, [user]);
 
   if (loading) {
-    return (
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-        <p className="text-sm text-zinc-400">Loading…</p>
-      </div>
-    );
+    return <ProfileContentSkeleton />;
   }
 
   if (!user) {
@@ -133,11 +138,22 @@ export function ProfileView() {
         <h2 className="text-lg font-semibold text-zinc-50">Your submissions</h2>
 
         {loadingStartups ? (
-          <p className="mt-4 text-sm text-zinc-400">Loading your startups…</p>
+          <div className="mt-6">
+            <ProfileSubmissionsGridSkeleton />
+          </div>
         ) : startups.length === 0 ? (
-          <p className="mt-4 rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 px-4 py-8 text-center text-sm text-zinc-400">
-            You haven&apos;t submitted any startups yet.
-          </p>
+          <div className="mt-6">
+            <EmptyState
+              icon={<EmptyIconSubmissions />}
+              title="No submissions yet"
+              description="Add a startup to the graveyard and it will show up here."
+              action={
+                <Link href="/submit" className={navPrimaryLinkClass}>
+                  Submit a startup
+                </Link>
+              }
+            />
+          </div>
         ) : (
           <ul className="mt-6 grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
             {startups.map((s) => (

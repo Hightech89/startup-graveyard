@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { useToast } from "@/components/toast-context";
 import { supabase } from "@/src/lib/supabase";
 
 const CAUSE_PRESETS = [
@@ -15,6 +16,7 @@ const CAUSE_PRESETS = [
 ] as const;
 
 export function SubmitStartupForm() {
+  const showToast = useToast();
   const router = useRouter();
   const [name, setName] = useState("");
   const [shortDescription, setShortDescription] = useState("");
@@ -71,13 +73,14 @@ export function SubmitStartupForm() {
       setLoading(false);
       setNeedsAuth(true);
       setError("You must be logged in to submit a startup.");
+      showToast("You must be logged in to do that.", "error");
       return;
     }
 
     if (userError) {
-      // Avoid leaking internal auth errors to the user.
       setLoading(false);
       setError("Unable to verify your session. Please try again.");
+      showToast("Something went wrong. Try again.", "error");
       return;
     }
 
@@ -94,10 +97,12 @@ export function SubmitStartupForm() {
     setLoading(false);
 
     if (insertError) {
-      setError(insertError.message);
+      setError("Something went wrong. Try again.");
+      showToast("Something went wrong. Try again.", "error");
       return;
     }
 
+    showToast("Startup submitted");
     router.push("/");
     router.refresh();
   }

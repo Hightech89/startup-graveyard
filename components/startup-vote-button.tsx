@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/toast-context";
 import { supabase } from "@/src/lib/supabase";
 
 type StartupVoteButtonProps = {
@@ -15,13 +16,13 @@ export function StartupVoteButton({
   voteCount: voteCountProp,
   hasVoted: hasVotedProp,
 }: StartupVoteButtonProps) {
+  const showToast = useToast();
   const hasVotedFromParent = hasVotedProp === true;
 
   const [hasVoted, setHasVoted] = useState(hasVotedFromParent);
   const [voteCount, setVoteCount] = useState(voteCountProp);
   const [voting, setVoting] = useState(false);
   const [authPrompt, setAuthPrompt] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     setVoteCount(voteCountProp);
@@ -48,7 +49,6 @@ export function StartupVoteButton({
     if (voting) return;
 
     setVoting(true);
-    setActionError(null);
     setAuthPrompt(false);
 
     const {
@@ -58,6 +58,7 @@ export function StartupVoteButton({
     if (!user) {
       setVoting(false);
       setAuthPrompt(true);
+      showToast("You must be logged in to do that.", "error");
       return;
     }
 
@@ -78,7 +79,7 @@ export function StartupVoteButton({
         });
       }
       setVoting(false);
-      setActionError("Unable to update vote. Please try again.");
+      showToast("Something went wrong. Try again.", "error");
       return;
     }
 
@@ -97,13 +98,14 @@ export function StartupVoteButton({
           });
         }
         setVoting(false);
-        setActionError("Unable to remove vote. Please try again.");
+        showToast("Something went wrong. Try again.", "error");
         return;
       }
 
       setHasVoted(false);
       setVoteCount((c) => Math.max(0, c - 1));
       setVoting(false);
+      showToast("Vote removed");
       return;
     }
 
@@ -122,13 +124,14 @@ export function StartupVoteButton({
         });
       }
       setVoting(false);
-      setActionError("Unable to add vote. Please try again.");
+      showToast("Something went wrong. Try again.", "error");
       return;
     }
 
     setHasVoted(true);
     setVoteCount((c) => c + 1);
     setVoting(false);
+    showToast("Vote added");
   }
 
   return (
@@ -166,18 +169,13 @@ export function StartupVoteButton({
 
       {authPrompt ? (
         <div className="text-right text-[11px] text-zinc-400">
-          You must be logged in to vote.{" "}
           <Link
             href="/auth"
-            className="ml-1 inline-flex items-center rounded-md border border-orange-500/60 bg-orange-500/15 px-2 py-[2px] text-orange-200 transition hover:bg-orange-500/25"
+            className="inline-flex items-center rounded-md border border-orange-500/60 bg-orange-500/15 px-2 py-[2px] text-orange-200 transition hover:bg-orange-500/25"
           >
             Log in
           </Link>
         </div>
-      ) : null}
-
-      {actionError ? (
-        <p className="text-right text-[11px] text-red-400">{actionError}</p>
       ) : null}
     </div>
   );

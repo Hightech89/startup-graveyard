@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import { AuthHeaderSkeleton } from "@/components/auth-header-skeleton";
+import { navSecondaryLinkClass } from "@/components/nav-actions";
 import { supabase } from "@/src/lib/supabase";
 
 export function AuthStatus() {
@@ -50,23 +52,20 @@ export function AuthStatus() {
   }
 
   if (loading) {
-    return <p className="text-sm text-zinc-400">Checking session...</p>;
+    return <AuthHeaderSkeleton />;
   }
 
   if (!user) {
     return (
-      <Link href="/auth" className="text-sm font-semibold text-orange-400 hover:text-orange-300">
+      <Link href="/auth" className={navSecondaryLinkClass}>
         Log in / Sign up
       </Link>
     );
   }
 
   return (
-    <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
-      <Link
-        href="/profile"
-        className="text-sm font-semibold text-orange-400 hover:text-orange-300"
-      >
+    <div className="flex max-w-full flex-col items-end gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-3">
+      <Link href="/profile" className={navSecondaryLinkClass}>
         Profile
       </Link>
       <p className="text-sm text-zinc-300">{user.email}</p>
