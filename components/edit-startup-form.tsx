@@ -116,10 +116,13 @@ export function EditStartupForm({ startup }: EditStartupFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-xl space-y-5">
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto w-full min-w-0 max-w-xl space-y-5"
+    >
       {error ? (
         <p
-          className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+          className="break-words rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200"
           role="alert"
         >
           {error}

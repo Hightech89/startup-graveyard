@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Startup } from "@/types/startup";
 import { supabase } from "@/src/lib/supabase";
+import { ShareButton } from "@/components/share-button";
 import { StartupCard } from "./startup-card";
 import { StartupOwnerActions } from "./startup-owner-actions";
 
@@ -94,7 +95,7 @@ export function StartupDetailClient({ startup }: { startup: Startup }) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="min-w-0 space-y-4">
       {startup.userId ? (
         <StartupOwnerActions
           startupId={startup.id}
@@ -104,6 +105,16 @@ export function StartupDetailClient({ startup }: { startup: Startup }) {
       <StartupCard
         startup={displayStartup}
         userHasVoted={userHasVoted === true}
+        detailActions={
+          <ShareButton
+            title={startup.name}
+            text={
+              startup.shortDescription?.trim()
+                ? startup.shortDescription.trim()
+                : startup.finalLesson
+            }
+          />
+        }
       />
     </div>
   );

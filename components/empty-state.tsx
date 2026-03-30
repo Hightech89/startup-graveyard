@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 const shellClass =
-  "mx-auto w-full max-w-md rounded-2xl border border-dashed border-zinc-700/85 bg-zinc-950/30 px-6 py-12 text-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] sm:max-w-lg sm:px-10 sm:py-14";
+  "mx-auto w-full min-w-0 max-w-md rounded-2xl border border-dashed border-zinc-700/85 bg-zinc-950/30 px-6 py-12 text-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] sm:max-w-lg sm:px-10 sm:py-14";
 
 type EmptyStateProps = {
   icon?: ReactNode;
@@ -33,10 +33,10 @@ export function EmptyState({
           </span>
         </div>
       ) : null}
-      <h3 className="text-base font-semibold tracking-tight text-zinc-100">
+      <h3 className="break-words text-base font-semibold tracking-tight text-zinc-100">
         {title}
       </h3>
-      <p className="mt-2.5 text-sm leading-relaxed text-zinc-400">
+      <p className="mt-2.5 break-words text-sm leading-relaxed text-zinc-400">
         {description}
       </p>
       {action ? (

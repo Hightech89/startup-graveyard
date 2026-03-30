@@ -3,7 +3,7 @@
 import { CAUSE_PRESETS } from "@/src/lib/startup-form";
 
 export const startupFormInputClass =
-  "mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15";
+  "mt-1 w-full min-w-0 max-w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15";
 
 export const startupFormLabelClass = "text-sm font-semibold text-zinc-300";
 
@@ -43,7 +43,7 @@ export function StartupFormFields({
   const pid = idPrefix;
 
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 space-y-5">
       <div>
         <label htmlFor={`${pid}name`} className={startupFormLabelClass}>
           Name

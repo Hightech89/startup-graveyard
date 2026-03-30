@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AuthStatus } from "@/components/auth-status";
+import { BackNavLink } from "@/components/back-nav-link";
 import { EditStartupView } from "@/components/edit-startup-view";
 import { getStartupById } from "@/src/lib/startups";
 
@@ -28,16 +28,13 @@ export default async function EditStartupPage({ params }: PageProps) {
   if (!startup) notFound();
 
   return (
-    <div className="min-h-full bg-zinc-950 text-zinc-50">
-      <header className="border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.12),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
-        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
-          <div className="flex items-center justify-between gap-4">
-            <Link
-              href={`/startups/${startup.id}`}
-              className="text-sm font-medium text-orange-400 hover:text-orange-300"
-            >
-              ← Back to startup
-            </Link>
+    <div className="min-h-full min-w-0 bg-zinc-950 text-zinc-50">
+      <header className="overflow-x-clip border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.12),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
+        <div className="mx-auto min-w-0 max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <BackNavLink href={`/startups/${startup.id}`}>
+              Back to startup
+            </BackNavLink>
             <AuthStatus />
           </div>
           <h1 className="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">
@@ -49,7 +46,7 @@ export default async function EditStartupPage({ params }: PageProps) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+      <main className="mx-auto min-w-0 max-w-5xl px-4 py-10 sm:px-6">
         <EditStartupView startup={startup} />
       </main>
     </div>

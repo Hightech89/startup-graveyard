@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { AuthHeaderSkeleton } from "@/components/auth-header-skeleton";
+import { BackNavLink } from "@/components/back-nav-link";
 import { ProfileContentSkeleton } from "@/components/page-skeletons";
 import { SkeletonBox } from "@/components/skeleton-primitives";
 
@@ -12,12 +12,7 @@ export default function Loading() {
       <header className={headerClass}>
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
           <div className="flex items-center justify-between gap-4">
-            <Link
-              href="/"
-              className="text-sm font-medium text-orange-400 hover:text-orange-300"
-            >
-              ← Back to graveyard
-            </Link>
+            <BackNavLink href="/">Back to graveyard</BackNavLink>
             <AuthHeaderSkeleton />
           </div>
           <div className="mt-6 space-y-2" aria-hidden>

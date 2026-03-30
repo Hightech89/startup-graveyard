@@ -227,17 +227,17 @@ export function HomeFeed({ startups }: HomeFeedProps) {
   }, [filtered, startups.length, userVotedStartupIds, clientVoteCounts]);
 
   return (
-    <div className="min-h-full bg-zinc-950 text-zinc-50">
-      <header className="border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.16),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
-        <div className="mx-auto max-w-5xl px-4 py-18 sm:px-6 sm:py-24">
-          <div className="mb-8 flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+    <div className="min-h-full min-w-0 bg-zinc-950 text-zinc-50">
+      <header className="overflow-x-clip border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.16),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
+        <div className="mx-auto max-w-5xl min-w-0 px-4 py-18 sm:px-6 sm:py-24">
+          <div className="mb-8 flex min-w-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
             <AuthStatus />
           </div>
           <div className="text-center">
-            <h1 className="relative inline-block text-4xl font-extrabold tracking-tight sm:text-5xl">
+            <h1 className="relative inline-block max-w-full text-4xl font-extrabold tracking-tight sm:text-5xl">
               <span
                 aria-hidden
-                className="pointer-events-none absolute -inset-x-8 -inset-y-7 -z-10 rounded-full bg-orange-500/20 blur-3xl"
+                className="pointer-events-none absolute -inset-y-7 -z-10 max-sm:-inset-x-4 sm:-inset-x-8 rounded-full bg-orange-500/20 blur-3xl"
               />
               Startup Graveyard
             </h1>
@@ -251,7 +251,7 @@ export function HomeFeed({ startups }: HomeFeedProps) {
             </div>
           </div>
 
-          <div className="mt-10">
+          <div className="mt-10 min-w-0">
             <label htmlFor="startup-search" className="sr-only">
               Search startups
             </label>
@@ -280,12 +280,12 @@ export function HomeFeed({ startups }: HomeFeedProps) {
               />
             </div>
 
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-semibold text-zinc-300">
+            <div className="mt-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 max-w-full flex-wrap items-start gap-x-3 gap-y-2 sm:items-center">
+                <span className="shrink-0 pt-0.5 text-sm font-semibold text-zinc-300 sm:pt-0">
                   Filters
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 flex-1 flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={() => setSelectedTag(null)}
@@ -304,7 +304,7 @@ export function HomeFeed({ startups }: HomeFeedProps) {
                       type="button"
                       onClick={() => setSelectedTag(tag)}
                       className={[
-                        "rounded-full border px-3 py-1 text-xs font-semibold transition whitespace-nowrap",
+                        "max-w-full truncate rounded-full border px-3 py-1 text-xs font-semibold transition",
                         selectedTag === tag
                           ? "border-orange-500 bg-orange-500/15 text-orange-300"
                           : "border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:border-zinc-700",
@@ -317,8 +317,11 @@ export function HomeFeed({ startups }: HomeFeedProps) {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-3 sm:justify-end">
-                <label htmlFor="sort" className="text-sm font-semibold text-zinc-300">
+              <div className="flex min-w-0 w-full flex-wrap items-center justify-between gap-3 sm:w-auto sm:justify-end">
+                <label
+                  htmlFor="sort"
+                  className="shrink-0 text-sm font-semibold text-zinc-300"
+                >
                   Sort
                 </label>
                 <select
@@ -327,7 +330,7 @@ export function HomeFeed({ startups }: HomeFeedProps) {
                   onChange={(e) =>
                     setSort(e.target.value as "newest" | "top" | "az")
                   }
-                  className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-50 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"
+                  className="min-w-0 flex-1 rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-50 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15 sm:min-w-[9rem] sm:flex-none"
                   aria-label="Sort startups"
                 >
                   <option value="newest">Newest</option>
@@ -340,9 +343,11 @@ export function HomeFeed({ startups }: HomeFeedProps) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-        <div className="mb-6 flex items-baseline justify-between gap-4">
-          <h2 className="text-lg font-semibold text-zinc-50">Recently Buried</h2>
+      <main className="mx-auto min-w-0 max-w-5xl px-4 py-10 sm:px-6">
+        <div className="mb-6 flex min-w-0 flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+          <h2 className="min-w-0 break-words text-lg font-semibold text-zinc-50">
+            Recently Buried
+          </h2>
           <p className="text-sm text-zinc-400">
             {filtered.length} of {startups.length}
           </p>

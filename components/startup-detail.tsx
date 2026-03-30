@@ -23,15 +23,17 @@ export function StartupDetail({ startup }: StartupDetailProps) {
   const buried = formatCreatedAt(startup.createdAt);
 
   return (
-    <article className={articleClass}>
-      <div className="flex items-start justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
+    <article className={`min-w-0 ${articleClass}`}>
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <h1 className="min-w-0 break-words text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
           {startup.name}
         </h1>
-        <UpvoteButton startupId={startup.id} initialUpvotes={startup.upvotes} />
+        <div className="shrink-0 self-start sm:self-auto">
+          <UpvoteButton startupId={startup.id} initialUpvotes={startup.upvotes} />
+        </div>
       </div>
 
-      <p className="mt-4 text-sm leading-relaxed text-zinc-300">
+      <p className="mt-4 break-words text-sm leading-relaxed text-zinc-300">
         {startup.shortDescription}
       </p>
 
@@ -40,7 +42,7 @@ export function StartupDetail({ startup }: StartupDetailProps) {
           Cause of Death
         </p>
         <div className="mt-2 rounded-xl border border-orange-500/55 bg-zinc-950/90 p-3.5 shadow-[0_0_0_1px_rgba(249,115,22,0.12)]">
-          <p className="text-base leading-relaxed text-orange-100">
+          <p className="break-words text-base leading-relaxed text-orange-100">
             {startup.causeOfDeath}
           </p>
         </div>
@@ -50,15 +52,15 @@ export function StartupDetail({ startup }: StartupDetailProps) {
         <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
           Final Lesson
         </p>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-100 italic">
+        <p className="mt-2 break-words text-sm leading-relaxed text-zinc-100 italic">
           {startup.finalLesson}
         </p>
       </div>
 
       <ul className="mt-6 flex flex-wrap gap-2">
         {startup.tags.map((tag) => (
-          <li key={tag}>
-            <span className="inline-flex items-center rounded-md border border-zinc-700/70 bg-zinc-950/20 px-2 py-0.5 text-[10px] font-medium tracking-wide text-zinc-500/85">
+          <li key={tag} className="min-w-0 max-w-full">
+            <span className="inline-flex max-w-full break-words items-center rounded-md border border-zinc-700/70 bg-zinc-950/20 px-2 py-0.5 text-[10px] font-medium tracking-wide text-zinc-500/85">
               {tag}
             </span>
           </li>

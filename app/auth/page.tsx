@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { AuthStatus } from "@/components/auth-status";
+import { BackNavLink } from "@/components/back-nav-link";
 import { friendlyAuthError, useToast } from "@/components/toast-context";
 import { supabase } from "@/src/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -86,13 +86,11 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-full bg-zinc-950 text-zinc-50">
-      <header className="border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.12),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
-        <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
-          <div className="flex items-center justify-between gap-4">
-            <Link href="/" className="text-sm font-medium text-orange-400 hover:text-orange-300">
-              ← Back to graveyard
-            </Link>
+    <div className="min-h-full min-w-0 bg-zinc-950 text-zinc-50">
+      <header className="overflow-x-clip border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.12),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
+        <div className="mx-auto min-w-0 max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <BackNavLink href="/">Back to graveyard</BackNavLink>
             <AuthStatus />
           </div>
           <h1 className="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">Account</h1>
@@ -102,9 +100,9 @@ export default function AuthPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <main className="mx-auto min-w-0 max-w-5xl px-4 py-10 sm:px-6">
+        <div className="grid min-w-0 gap-6 md:grid-cols-2">
+          <section className="min-w-0 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
             <h2 className="text-lg font-semibold text-zinc-50">Log in</h2>
             <form onSubmit={handleLogin} className="mt-4 space-y-4">
               <div>
@@ -118,7 +116,7 @@ export default function AuthPage() {
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition-[box-shadow,border-color] placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"
+                  className="w-full min-w-0 max-w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition-[box-shadow,border-color] placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"
                 />
               </div>
               <div>
@@ -132,7 +130,7 @@ export default function AuthPage() {
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition-[box-shadow,border-color] placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"
+                  className="w-full min-w-0 max-w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition-[box-shadow,border-color] placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"
                 />
               </div>
               <button
@@ -145,7 +143,7 @@ export default function AuthPage() {
             </form>
           </section>
 
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+          <section className="min-w-0 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
             <h2 className="text-lg font-semibold text-zinc-50">Sign up</h2>
             <form onSubmit={handleSignup} className="mt-4 space-y-4">
               <div>
@@ -159,7 +157,7 @@ export default function AuthPage() {
                   value={signupEmail}
                   onChange={(e) => setSignupEmail(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition-[box-shadow,border-color] placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"
+                  className="w-full min-w-0 max-w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition-[box-shadow,border-color] placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"
                 />
               </div>
               <div>
@@ -173,7 +171,7 @@ export default function AuthPage() {
                   value={signupPassword}
                   onChange={(e) => setSignupPassword(e.target.value)}
                   required
-                  className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition-[box-shadow,border-color] placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"
+                  className="w-full min-w-0 max-w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition-[box-shadow,border-color] placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"
                 />
               </div>
               <button
@@ -190,7 +188,8 @@ export default function AuthPage() {
         <div className="mt-6 space-y-2">
           {user ? (
             <p className="text-sm text-zinc-300">
-              Signed in as <span className="font-medium text-zinc-100">{user.email}</span>.
+              Signed in as{" "}
+              <span className="break-all font-medium text-zinc-100">{user.email}</span>.
             </p>
           ) : (
             <p className="text-sm text-zinc-400">You are currently signed out.</p>

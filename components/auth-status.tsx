@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { AuthHeaderSkeleton } from "@/components/auth-header-skeleton";
-import { navSecondaryLinkClass } from "@/components/nav-actions";
+import { logoutButtonClass, navSecondaryLinkClass } from "@/components/nav-actions";
 import { supabase } from "@/src/lib/supabase";
 
 export function AuthStatus() {
@@ -64,20 +64,31 @@ export function AuthStatus() {
   }
 
   return (
-    <div className="flex max-w-full flex-col items-end gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-3">
-      <Link href="/profile" className={navSecondaryLinkClass}>
-        Profile
-      </Link>
-      <p className="text-sm text-zinc-300">{user.email}</p>
-      <button
-        type="button"
-        onClick={handleSignOut}
-        disabled={signingOut}
-        className="rounded-lg border border-zinc-700 bg-zinc-900/60 px-3 py-1.5 text-xs font-semibold text-zinc-200 transition hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-60"
+    <div className="flex min-w-0 max-w-full flex-col items-end gap-1.5 sm:max-w-none sm:gap-2">
+      <div className="flex min-w-0 w-full max-w-full flex-wrap items-center justify-end gap-x-2 gap-y-1.5 sm:w-auto">
+        <Link href="/profile" className={navSecondaryLinkClass}>
+          Profile
+        </Link>
+        <button
+          type="button"
+          onClick={handleSignOut}
+          disabled={signingOut}
+          className={logoutButtonClass}
+        >
+          {signingOut ? "Logging out..." : "Log out"}
+        </button>
+      </div>
+      <span
+        className="max-w-full truncate text-right text-[11px] leading-snug text-zinc-500 sm:max-w-[min(100%,15rem)]"
+        title={user.email ?? undefined}
       >
-        {signingOut ? "Logging out..." : "Log out"}
-      </button>
-      {error ? <p className="w-full text-right text-xs text-red-400 sm:w-auto">{error}</p> : null}
+        {user.email}
+      </span>
+      {error ? (
+        <p className="w-full max-w-full text-right text-xs text-red-400">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -45,7 +45,7 @@ export function SubmitAuthGuard() {
 
   if (checking) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <div className="mx-auto w-full min-w-0 max-w-xl rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
         <p className="text-sm text-zinc-400">Checking your session…</p>
       </div>
     );
@@ -53,7 +53,7 @@ export function SubmitAuthGuard() {
 
   if (!authed) {
     return (
-      <div className="mx-auto max-w-xl rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <div className="mx-auto w-full min-w-0 max-w-xl rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
         <p className="text-sm text-zinc-200">
           You must be logged in to submit a startup.
         </p>

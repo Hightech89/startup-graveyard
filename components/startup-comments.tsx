@@ -17,10 +17,10 @@ import { supabase } from "@/src/lib/supabase";
 const MAX_LENGTH = 500;
 
 const sectionClass =
-  "mt-10 rounded-[1.2rem] border border-zinc-700 bg-zinc-900/85 p-5 shadow-[0_14px_30px_-18px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.02)]";
+  "mt-10 min-w-0 rounded-[1.2rem] border border-zinc-700 bg-zinc-900/85 p-5 shadow-[0_14px_30px_-18px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.02)]";
 
 const inputClass =
-  "mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-50 outline-none ring-orange-500/0 transition placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15";
+  "mt-1 w-full min-w-0 max-w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-50 outline-none ring-orange-500/0 transition placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15";
 
 type StartupCommentsProps = {
   startupId: string;
@@ -108,7 +108,7 @@ function CommentRow({
             maxLength={MAX_LENGTH}
             disabled={isSaving}
             aria-label="Edit comment"
-            className={`${inputClass} min-h-[6rem] resize-y disabled:opacity-60`}
+            className={`${inputClass} min-h-[6rem] max-w-full resize-y disabled:opacity-60`}
           />
           <p className="text-right text-xs tabular-nums text-zinc-500">
             {editValue.length}/{MAX_LENGTH}
@@ -134,11 +134,13 @@ function CommentRow({
         </div>
       ) : (
         <>
-          <p className="text-sm leading-relaxed text-zinc-200">
+          <p className="break-words text-sm leading-relaxed text-zinc-200">
             {comment.content}
           </p>
-          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
-            <span className="font-medium text-zinc-400">{authorLine}</span>
+          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
+            <span className="min-w-0 break-all font-medium text-zinc-400 sm:break-words">
+              {authorLine}
+            </span>
             {when ? (
               <>
                 <span className="text-zinc-600" aria-hidden>
@@ -530,7 +532,7 @@ export function StartupComments({
                 onChange={(e) => setBody(e.target.value)}
                 disabled={submitting}
                 placeholder="Share your thoughts…"
-                className={`${inputClass} min-h-[6rem] resize-y disabled:opacity-60`}
+                className={`${inputClass} min-h-[6rem] max-w-full resize-y disabled:opacity-60`}
                 aria-describedby="comment-counter"
               />
               <p

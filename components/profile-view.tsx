@@ -108,7 +108,7 @@ export function ProfileView() {
 
   if (!user) {
     return (
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
+      <div className="w-full min-w-0 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
         <p className="text-sm text-zinc-200">
           Sign in to view your profile and the startups you&apos;ve submitted.
         </p>
@@ -125,7 +125,7 @@ export function ProfileView() {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="min-w-0 space-y-10">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
           Email

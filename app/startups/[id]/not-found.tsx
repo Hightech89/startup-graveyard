@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackNavLink } from "@/components/back-nav-link";
 
 export default function StartupNotFound() {
   return (
@@ -10,12 +10,9 @@ export default function StartupNotFound() {
         <p className="mt-3 text-zinc-400">
           This entry may have been removed or the link is wrong.
         </p>
-        <Link
-          href="/"
-          className="mt-8 inline-block text-sm font-semibold text-orange-400 hover:text-orange-300"
-        >
-          ← Back to graveyard
-        </Link>
+        <div className="mt-8 flex justify-center">
+          <BackNavLink href="/">Back to graveyard</BackNavLink>
+        </div>
       </main>
     </div>
   );

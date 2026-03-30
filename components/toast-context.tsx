@@ -53,7 +53,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             role="status"
             className={[
-              "toast-enter pointer-events-auto rounded-xl border px-4 py-3 text-sm font-medium shadow-[0_12px_40px_-12px_rgba(0,0,0,0.85)] backdrop-blur-sm",
+              "toast-enter pointer-events-auto break-words rounded-xl border px-4 py-3 text-sm font-medium shadow-[0_12px_40px_-12px_rgba(0,0,0,0.85)] backdrop-blur-sm",
               t.variant === "success"
                 ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-100"
                 : "border-red-500/40 bg-red-500/10 text-red-100",
