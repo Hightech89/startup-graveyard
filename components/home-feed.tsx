@@ -69,6 +69,32 @@ export function HomeFeed({ startups }: HomeFeedProps) {
     return sorted;
   }, [selectedTag, sort, startups, query]);
 
+  const topStartups = useMemo(() => {
+    if (startups.length === 0) return [];
+    const withVotes = startups.map((s) => {
+      const id = String(s.id);
+      const displayVotes =
+        clientVoteCounts == null ? s.upvotes : (clientVoteCounts[id] ?? 0);
+      return { startup: { ...s, upvotes: displayVotes }, displayVotes, id };
+    });
+    return withVotes
+      .sort((a, b) => b.displayVotes - a.displayVotes || a.startup.name.localeCompare(b.startup.name))
+      .slice(0, 5);
+  }, [startups, clientVoteCounts]);
+
+  const recentStartups = useMemo(() => {
+    const topIds = new Set(topStartups.map((t) => String(t.startup.id)));
+    const remaining = startups.filter((s) => !topIds.has(String(s.id)));
+    const base = remaining.filter((s) => matchesQuery(s, query));
+    const tagged = selectedTag ? base.filter((s) => s.tags.includes(selectedTag)) : base;
+    // Recently Buried is always newest-first (distinct from Top Startups).
+    return [...tagged].sort((a, b) => {
+      const ta = new Date(a.createdAt).getTime();
+      const tb = new Date(b.createdAt).getTime();
+      return (Number.isNaN(tb) ? 0 : tb) - (Number.isNaN(ta) ? 0 : ta);
+    });
+  }, [startups, topStartups, query, selectedTag]);
+
   useEffect(() => {
     let mounted = true;
 
@@ -344,13 +370,31 @@ export function HomeFeed({ startups }: HomeFeedProps) {
       </header>
 
       <main className="mx-auto min-w-0 max-w-5xl px-4 py-10 sm:px-6">
+        {startups.length > 0 ? (
+          <section className="mb-10">
+            <div className="mb-6 flex min-w-0 flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+              <h2 className="min-w-0 break-words text-lg font-semibold text-zinc-50">
+                Top Startups
+              </h2>
+            </div>
+            <ul className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+              {topStartups.slice(0, 5).map(({ startup, id }) => (
+                <li key={`top-${startup.id}`}>
+                  <StartupCard
+                    startup={startup}
+                    userHasVoted={userVotedStartupIds.has(id)}
+                  />
+                </li>
+              ))}
+            </ul>
+            <div className="mt-10 border-t border-zinc-800/90" aria-hidden />
+          </section>
+        ) : null}
+
         <div className="mb-6 flex min-w-0 flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
           <h2 className="min-w-0 break-words text-lg font-semibold text-zinc-50">
             Recently Buried
           </h2>
-          <p className="text-sm text-zinc-400">
-            {filtered.length} of {startups.length}
-          </p>
         </div>
         {startups.length === 0 ? (
           <EmptyState
@@ -363,7 +407,7 @@ export function HomeFeed({ startups }: HomeFeedProps) {
               </Link>
             }
           />
-        ) : filtered.length === 0 ? (
+        ) : recentStartups.length === 0 ? (
           <EmptyState
             icon={<EmptyIconSearch />}
             title="No results found"
@@ -383,7 +427,7 @@ export function HomeFeed({ startups }: HomeFeedProps) {
           />
         ) : (
           <ul className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
-            {filtered.map((startup) => {
+            {recentStartups.map((startup) => {
               const id = String(startup.id);
               const displayVotes =
                 clientVoteCounts == null

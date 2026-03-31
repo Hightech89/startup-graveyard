@@ -1,5 +1,6 @@
 import { AuthHeaderSkeleton } from "@/components/auth-header-skeleton";
 import { BackNavLink } from "@/components/back-nav-link";
+import { BrandLink } from "@/components/brand-link";
 import { ProfileContentSkeleton } from "@/components/page-skeletons";
 import { SkeletonBox } from "@/components/skeleton-primitives";
 
@@ -11,9 +12,12 @@ export default function Loading() {
     <div className="min-h-full bg-zinc-950 text-zinc-50">
       <header className={headerClass}>
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
-          <div className="flex items-center justify-between gap-4">
-            <BackNavLink href="/">Back to graveyard</BackNavLink>
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 sm:gap-4">
+            <BrandLink />
             <AuthHeaderSkeleton />
+          </div>
+          <div className="mt-4">
+            <BackNavLink href="/">Back to graveyard</BackNavLink>
           </div>
           <div className="mt-6 space-y-2" aria-hidden>
             <SkeletonBox className="h-9 w-40 rounded-lg sm:h-10" />

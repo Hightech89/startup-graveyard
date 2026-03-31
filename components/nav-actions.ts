@@ -15,3 +15,7 @@ export const backNavLinkClass =
 /** Small secondary control (log out, compact actions). */
 export const logoutButtonClass =
   "inline-flex min-h-9 shrink-0 items-center rounded-full border border-zinc-600/80 bg-zinc-900/50 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-800/60 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-60";
+
+/** Top-left brand link shown in page headers. */
+export const brandLinkClass =
+  "inline-flex min-h-10 items-center rounded-full px-2 text-sm font-semibold tracking-tight text-zinc-100 transition hover:text-orange-200 sm:px-3";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { AuthStatus } from "@/components/auth-status";
 import { BackNavLink } from "@/components/back-nav-link";
+import { SiteHeader } from "@/components/site-header";
 import { SubmitAuthGuard } from "@/components/submit-auth-guard";
 
 export const metadata: Metadata = {
@@ -13,9 +13,9 @@ export default function SubmitPage() {
     <div className="min-h-full min-w-0 bg-zinc-950 text-zinc-50">
       <header className="overflow-x-clip border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.12),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
         <div className="mx-auto min-w-0 max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
-          <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <SiteHeader />
+          <div className="mt-4">
             <BackNavLink href="/">Back to graveyard</BackNavLink>
-            <AuthStatus />
           </div>
           <h1 className="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">
             Submit a startup

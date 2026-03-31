@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import type { StartupComment } from "@/types/comment";
 import {
@@ -210,6 +210,7 @@ export function StartupComments({
   initialComments,
 }: StartupCommentsProps) {
   const showToast = useToast();
+  const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const [comments, setComments] = useState<StartupComment[]>(initialComments);
   const [user, setUser] = useState<User | null>(null);
   const [body, setBody] = useState("");
@@ -422,6 +423,13 @@ export function StartupComments({
   const loggedIn = !!user;
   const length = body.length;
 
+  function focusComposer() {
+    const el = composerRef.current;
+    if (!el) return;
+    el.scrollIntoView({ block: "center" });
+    el.focus();
+  }
+
   return (
     <section className={sectionClass} aria-labelledby="comments-heading">
       <h2
@@ -443,11 +451,19 @@ export function StartupComments({
             title="No comments yet"
             description={
               loggedIn
-                ? "Start the conversation."
+                ? "Be the first to share your thoughts."
                 : "Sign in to leave the first comment."
             }
             action={
-              loggedIn ? undefined : (
+              loggedIn ? (
+                <button
+                  type="button"
+                  onClick={focusComposer}
+                  className={navSecondaryLinkClass}
+                >
+                  Write a comment
+                </button>
+              ) : (
                 <Link href="/auth" className={navSecondaryLinkClass}>
                   Log in or sign up
                 </Link>
@@ -528,6 +544,7 @@ export function StartupComments({
                 name="comment"
                 rows={4}
                 maxLength={MAX_LENGTH}
+                ref={composerRef}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 disabled={submitting}

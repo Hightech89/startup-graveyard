@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { AuthStatus } from "@/components/auth-status";
 import { BackNavLink } from "@/components/back-nav-link";
+import { AuthStatus } from "@/components/auth-status";
 import { StartupComments } from "@/components/startup-comments";
 import { StartupDetailClient } from "@/components/startup-detail-client";
 import { getStartupComments } from "@/src/lib/comments";
@@ -35,7 +35,7 @@ export default async function StartupPage({ params }: PageProps) {
     <div className="min-h-full min-w-0 bg-zinc-950 text-zinc-50">
       <header className="overflow-x-clip border-b border-zinc-800/90 bg-[radial-gradient(70%_140%_at_50%_0%,rgba(249,115,22,0.12),rgba(24,24,27,0.88)_42%,#09090b_72%)]">
         <div className="mx-auto min-w-0 max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
-          <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 sm:gap-3">
             <BackNavLink href="/">Back to graveyard</BackNavLink>
             <AuthStatus />
           </div>
