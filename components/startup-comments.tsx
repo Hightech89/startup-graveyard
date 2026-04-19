@@ -37,6 +37,20 @@ function formatCommentDate(iso: string) {
 }
 
 function authorLabel(comment: StartupComment, user: User | null) {
+  const nickname =
+    typeof comment.authorNickname === "string"
+      ? comment.authorNickname.trim()
+      : "";
+  if (nickname.length > 0) {
+    return nickname;
+  }
+  const email =
+    typeof comment.authorEmail === "string"
+      ? comment.authorEmail.trim()
+      : "";
+  if (email.length > 0) {
+    return email;
+  }
   if (user && comment.userId === user.id) {
     return user.email?.trim() || "You";
   }

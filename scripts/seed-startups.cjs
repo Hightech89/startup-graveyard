@@ -39,6 +39,56 @@ function loadSeed() {
   return parsed;
 }
 
+async function ensureSeedVoters(supabase, needed) {
+  const count = Math.max(needed, 2);
+  const desiredEmails = Array.from(
+    { length: count },
+    (_, i) => `seed-voter-${i + 1}@startupgraveyard.local`,
+  );
+
+  const existingByEmail = new Map();
+  let page = 1;
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage: 200,
+    });
+    if (error) {
+      console.error("[seed:startups] listUsers failed:", error);
+      throw new Error(error.message);
+    }
+    const users = data?.users ?? [];
+    for (const user of users) {
+      if (user?.email) existingByEmail.set(user.email, user);
+    }
+    if (users.length < 200) break;
+    page += 1;
+  }
+
+  const userIds = [];
+  for (const email of desiredEmails) {
+    const existing = existingByEmail.get(email);
+    if (existing?.id) {
+      userIds.push(existing.id);
+      continue;
+    }
+    const { data, error } = await supabase.auth.admin.createUser({
+      email,
+      password: "SeedVoter!234",
+      email_confirm: true,
+    });
+    if (error) {
+      console.error(`[seed:startups] createUser failed for ${email}:`, error);
+      throw new Error(error.message);
+    }
+    if (!data?.user?.id) {
+      throw new Error(`Failed to create seed voter for ${email}`);
+    }
+    userIds.push(data.user.id);
+  }
+  return userIds;
+}
+
 async function main() {
   console.log(`[seed:startups] ${ts()} starting`);
   loadDotEnvLocal();
@@ -155,6 +205,47 @@ async function main() {
   console.log(
     `[seed:startups] inserted rows=${Array.isArray(insertedRows) ? insertedRows.length : 0}`,
   );
+
+  const voteTargets = seed.map((s, i) => {
+    const configured = Number.isFinite(Number(s.seedVotes))
+      ? Number(s.seedVotes)
+      : null;
+    const fallback = Math.max(2, 10 - i);
+    const votes = Math.max(2, Math.min(10, configured ?? fallback));
+    return { name: s.name, votes };
+  });
+
+  const maxVotes = voteTargets.reduce((m, v) => Math.max(m, v.votes), 0);
+  const voterIds = await ensureSeedVoters(supabase, maxVotes);
+  console.log(
+    `[seed:startups] seed voters ready=${voterIds.length} (for max votes=${maxVotes})`,
+  );
+
+  const insertedByName = new Map(
+    (insertedRows ?? []).map((r) => [String(r.name), String(r.id)]),
+  );
+  const voteRows = [];
+  for (const t of voteTargets) {
+    const startupId = insertedByName.get(String(t.name));
+    if (!startupId) continue;
+    for (let i = 0; i < t.votes && i < voterIds.length; i += 1) {
+      voteRows.push({
+        startup_id: startupId,
+        user_id: voterIds[i],
+      });
+    }
+  }
+
+  if (voteRows.length > 0) {
+    console.log(`[seed:startups] inserting startup_votes rows=${voteRows.length}…`);
+    const { error: votesInsertError } = await supabase
+      .from("startup_votes")
+      .insert(voteRows);
+    if (votesInsertError) {
+      console.error("[seed:startups] insert startup_votes failed:", votesInsertError);
+      throw new Error(votesInsertError.message);
+    }
+  }
 
   const { count, error: countError } = await supabase
     .from("startups")

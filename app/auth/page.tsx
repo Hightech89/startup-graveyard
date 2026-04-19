@@ -12,6 +12,7 @@ export default function AuthPage() {
   const showToast = useToast();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [signupNotice, setSignupNotice] = useState<string | null>(null);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
@@ -46,6 +47,7 @@ export default function AuthPage() {
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoginLoading(true);
+    setSignupNotice(null);
 
     const { error: loginError } = await supabase.auth.signInWithPassword({
       email: loginEmail,
@@ -67,19 +69,33 @@ export default function AuthPage() {
   async function handleSignup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSignupLoading(true);
+    setSignupNotice(null);
 
-    const { error: signupError } = await supabase.auth.signUp({
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const redirectTo = origin ? `${origin}/auth/callback` : undefined;
+
+    const { data, error: signupError } = await supabase.auth.signUp({
       email: signupEmail,
       password: signupPassword,
+      options: redirectTo ? { emailRedirectTo: redirectTo } : undefined,
     });
 
     if (signupError) {
       showToast(friendlyAuthError(signupError.message), "error");
     } else {
-      showToast("Account created. Check your email if confirmation is required.");
-      redirectTimeoutRef.current = window.setTimeout(() => {
-        router.push("/");
-      }, 1200);
+      // If email confirmation is enabled, Supabase returns no session here.
+      // Treat that as "not signed in yet" and show a clear next step.
+      if (!data.session) {
+        setSignupNotice(
+          "Account created. Check your email to confirm your address, then return here to log in.",
+        );
+        showToast("Check your email to confirm your account");
+      } else {
+        showToast("Account created");
+        redirectTimeoutRef.current = window.setTimeout(() => {
+          router.push("/");
+        }, 1200);
+      }
     }
 
     setSignupLoading(false);
@@ -101,6 +117,11 @@ export default function AuthPage() {
       </header>
 
       <main className="mx-auto min-w-0 max-w-5xl px-4 py-10 sm:px-6">
+        {signupNotice ? (
+          <div className="mb-6 rounded-2xl border border-orange-500/40 bg-orange-500/10 px-5 py-4">
+            <p className="text-sm text-orange-100">{signupNotice}</p>
+          </div>
+        ) : null}
         <div className="grid min-w-0 gap-6 md:grid-cols-2">
           <section className="min-w-0 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
             <h2 className="text-lg font-semibold text-zinc-50">Log in</h2>
@@ -182,6 +203,10 @@ export default function AuthPage() {
                 {signupLoading ? "Signing up..." : "Sign up"}
               </button>
             </form>
+            <p className="mt-4 text-xs leading-relaxed text-zinc-500">
+              If email confirmation is enabled, you&apos;ll need to confirm your
+              address before you can log in.
+            </p>
           </section>
         </div>
 

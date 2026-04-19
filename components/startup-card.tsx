@@ -16,6 +16,11 @@ export function StartupCard({
   detailActions,
 }: StartupCardProps) {
   const detailHref = `/startups/${startup.id}`;
+  const authorName =
+    typeof startup.authorName === "string" ? startup.authorName.trim() : "";
+  const authorEmail =
+    typeof startup.authorEmail === "string" ? startup.authorEmail.trim() : "";
+  const authorLabel = authorName || authorEmail;
 
   return (
     <article className="group relative min-w-0 rounded-[1.2rem] border border-zinc-700 bg-zinc-900/85 p-6 shadow-[0_14px_30px_-18px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.02)] transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out [border-top-left-radius:2rem] [border-top-right-radius:2rem] hover:-translate-y-0.5 hover:border-zinc-500 hover:bg-zinc-800/95 hover:shadow-[0_20px_40px_-18px_rgba(0,0,0,0.92),0_0_0_1px_rgba(255,255,255,0.05)]">
@@ -29,6 +34,11 @@ export function StartupCard({
           <h3 className="break-words text-lg font-bold leading-snug tracking-tight text-zinc-50 transition-colors duration-200 group-hover:text-orange-200 sm:text-xl">
             {startup.name}
           </h3>
+          {authorLabel ? (
+            <p className="text-xs font-medium text-zinc-500">
+              By {authorLabel}
+            </p>
+          ) : null}
           {startup.shortDescription ? (
             <p className="break-words text-sm leading-relaxed text-zinc-500">
               {startup.shortDescription}

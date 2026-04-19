@@ -21,11 +21,7 @@ export default function SubmitPage() {
             Submit a startup
           </h1>
           <p className="mt-2 max-w-xl break-words text-zinc-400">
-            Lay another idea to rest. Fields map to your Supabase{" "}
-            <code className="rounded bg-zinc-900 px-1.5 py-0.5 text-xs text-zinc-300">
-              startups
-            </code>{" "}
-            table.
+            Share what went wrong — and what others can learn.
           </p>
         </div>
       </header>

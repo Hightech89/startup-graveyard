@@ -1,5 +1,6 @@
 import type { Startup } from "@/types/startup";
 import { supabase } from "./supabase";
+import { getUserEmailsById } from "./user-identities";
 
 type StartupRow = {
   id: string;
@@ -12,10 +13,22 @@ type StartupRow = {
   created_at: string;
 };
 
-function mapRow(row: StartupRow, upvotes: number): Startup {
+type ProfileNicknameRow = {
+  id: string;
+  nickname: string | null;
+};
+
+function mapRow(
+  row: StartupRow,
+  upvotes: number,
+  authorName?: string | null,
+  authorEmail?: string | null,
+): Startup {
   return {
     id: String(row.id),
     userId: row.user_id ?? undefined,
+    authorName: authorName ?? undefined,
+    authorEmail: authorEmail ?? undefined,
     name: row.name,
     shortDescription: row.short_description,
     causeOfDeath: row.cause_of_death,
@@ -59,11 +72,37 @@ async function getStartupVoteCounts(
   return counts;
 }
 
+async function getProfileNicknames(
+  userIds: string[],
+): Promise<Record<string, string>> {
+  const ids = [
+    ...new Set(userIds.map((id) => String(id)).filter((id) => id.length > 0)),
+  ];
+  if (ids.length === 0) return {};
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, nickname")
+    .in("id", ids);
+
+  if (error || !data) return {};
+
+  const map: Record<string, string> = {};
+  for (const row of data as ProfileNicknameRow[]) {
+    const id = String(row.id);
+    const nickname = typeof row.nickname === "string" ? row.nickname.trim() : "";
+    if (id && nickname.length > 0) {
+      map[id] = nickname;
+    }
+  }
+  return map;
+}
+
 export async function getStartups(): Promise<Startup[]> {
   const { data, error } = await supabase
     .from("startups")
     .select(
-      "id, name, short_description, cause_of_death, final_lesson, tags, created_at",
+      "id, user_id, name, short_description, cause_of_death, final_lesson, tags, created_at",
     );
 
   if (error || !data) return [];
@@ -72,6 +111,13 @@ export async function getStartups(): Promise<Startup[]> {
   const voteCounts = await getStartupVoteCounts(
     startups.map((s) => String(s.id)),
   );
+  const authorUserIds = startups
+    .map((s) => (s.user_id ? String(s.user_id) : ""))
+    .filter(Boolean);
+  const [nicknameByUserId, emailByUserId] = await Promise.all([
+    getProfileNicknames(authorUserIds),
+    getUserEmailsById(supabase, authorUserIds),
+  ]);
 
   if (process.env.NODE_ENV === "development" && startups.length > 0) {
     const keys = Object.keys(voteCounts);
@@ -82,9 +128,15 @@ export async function getStartups(): Promise<Startup[]> {
     });
   }
 
-  return startups.map((s) =>
-    mapRow(s, voteCounts[String(s.id)] ?? 0),
-  );
+  return startups.map((s) => {
+    const userId = s.user_id ? String(s.user_id) : "";
+    return mapRow(
+      s,
+      voteCounts[String(s.id)] ?? 0,
+      userId ? nicknameByUserId[userId] ?? null : null,
+      userId ? emailByUserId[userId] ?? null : null,
+    );
+  });
 }
 
 export async function getStartupsByUserId(userId: string): Promise<Startup[]> {
@@ -102,10 +154,23 @@ export async function getStartupsByUserId(userId: string): Promise<Startup[]> {
   const voteCounts = await getStartupVoteCounts(
     startups.map((s) => String(s.id)),
   );
+  const authorUserIds = startups
+    .map((s) => (s.user_id ? String(s.user_id) : ""))
+    .filter(Boolean);
+  const [nicknameByUserId, emailByUserId] = await Promise.all([
+    getProfileNicknames(authorUserIds),
+    getUserEmailsById(supabase, authorUserIds),
+  ]);
 
-  return startups.map((s) =>
-    mapRow(s, voteCounts[String(s.id)] ?? 0),
-  );
+  return startups.map((s) => {
+    const uid = s.user_id ? String(s.user_id) : "";
+    return mapRow(
+      s,
+      voteCounts[String(s.id)] ?? 0,
+      uid ? nicknameByUserId[uid] ?? null : null,
+      uid ? emailByUserId[uid] ?? null : null,
+    );
+  });
 }
 
 export async function getStartupById(id: string): Promise<Startup | null> {
@@ -122,6 +187,16 @@ export async function getStartupById(id: string): Promise<Startup | null> {
   const row = data as StartupRow;
   const idKey = String(row.id);
   const voteCounts = await getStartupVoteCounts([idKey]);
+  const authorUserIds = row.user_id ? [String(row.user_id)] : [];
+  const [nicknameByUserId, emailByUserId] = await Promise.all([
+    getProfileNicknames(authorUserIds),
+    getUserEmailsById(supabase, authorUserIds),
+  ]);
 
-  return mapRow(row, voteCounts[idKey] ?? 0);
+  return mapRow(
+    row,
+    voteCounts[idKey] ?? 0,
+    row.user_id ? nicknameByUserId[String(row.user_id)] ?? null : null,
+    row.user_id ? emailByUserId[String(row.user_id)] ?? null : null,
+  );
 }

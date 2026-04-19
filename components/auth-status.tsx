@@ -9,6 +9,7 @@ import { supabase } from "@/src/lib/supabase";
 
 export function AuthStatus() {
   const [user, setUser] = useState<User | null>(null);
+  const [nickname, setNickname] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,13 +17,37 @@ export function AuthStatus() {
   useEffect(() => {
     let mounted = true;
 
+    async function loadNickname(userId: string) {
+      const { data, error: nicknameError } = await supabase
+        .from("profiles")
+        .select("nickname")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (!mounted) return;
+      if (nicknameError) {
+        setNickname(null);
+        return;
+      }
+
+      const value =
+        typeof data?.nickname === "string" ? data.nickname.trim() : "";
+      setNickname(value.length > 0 ? value : null);
+    }
+
     async function loadUser() {
       const { data, error: userError } = await supabase.auth.getUser();
       if (!mounted) return;
       if (userError) {
         setError(userError.message);
+        setNickname(null);
       } else {
         setUser(data.user);
+        if (data.user?.id) {
+          void loadNickname(data.user.id);
+        } else {
+          setNickname(null);
+        }
       }
       setLoading(false);
     }
@@ -31,13 +56,29 @@ export function AuthStatus() {
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user?.id) {
+        void loadNickname(session.user.id);
+      } else {
+        setNickname(null);
+      }
       setError(null);
       setLoading(false);
     });
 
+    function onNicknameUpdated(event: Event) {
+      const custom = event as CustomEvent<{ nickname: string | null }>;
+      const value = custom.detail?.nickname?.trim() ?? "";
+      setNickname(value.length > 0 ? value : null);
+    }
+    window.addEventListener("profile:nickname-updated", onNicknameUpdated as EventListener);
+
     return () => {
       mounted = false;
       authListener.subscription.unsubscribe();
+      window.removeEventListener(
+        "profile:nickname-updated",
+        onNicknameUpdated as EventListener,
+      );
     };
   }, []);
 
@@ -80,9 +121,9 @@ export function AuthStatus() {
       </div>
       <span
         className="max-w-full truncate text-right text-[11px] leading-snug text-zinc-500 sm:max-w-[min(100%,15rem)]"
-        title={user.email ?? undefined}
+        title={nickname ? `Hello, ${nickname}` : (user.email ?? undefined)}
       >
-        {user.email}
+        {nickname ? `Hello, ${nickname}` : user.email}
       </span>
       {error ? (
         <p className="w-full max-w-full text-right text-xs text-red-400">
