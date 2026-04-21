@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { BackNavLink } from "@/components/back-nav-link";
 import { SiteHeader } from "@/components/site-header";
 import { EditStartupView } from "@/components/edit-startup-view";
-import { getStartupById } from "@/src/lib/startups";
+import { getStartupById } from "@/src/lib/startups-server";
 
 export const dynamic = "force-dynamic";
 

@@ -5,7 +5,7 @@ import { AuthStatus } from "@/components/auth-status";
 import { StartupComments } from "@/components/startup-comments";
 import { StartupDetailClient } from "@/components/startup-detail-client";
 import { getStartupComments } from "@/src/lib/comments";
-import { getStartupById } from "@/src/lib/startups";
+import { getStartupById } from "@/src/lib/startups-server";
 
 export const dynamic = "force-dynamic";
 

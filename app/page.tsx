@@ -1,5 +1,5 @@
 import { HomeFeed } from "@/components/home-feed";
-import { getStartups } from "@/src/lib/startups";
+import { getStartups } from "@/src/lib/startups-server";
 
 export const dynamic = "force-dynamic";
 

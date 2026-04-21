@@ -1,5 +1,6 @@
 import type { Startup } from "@/types/startup";
 import { supabase } from "./supabase";
+import { supabaseAdmin } from "./supabase-admin";
 import { getUserEmailsById } from "./user-identities";
 
 type StartupRow = {
@@ -39,7 +40,7 @@ function mapRow(
   };
 }
 
-async function getStartupVoteCounts(
+async function getStartupVoteCountsAdmin(
   startupIds: string[],
 ): Promise<Record<string, number>> {
   const normalizedIds = [
@@ -49,16 +50,15 @@ async function getStartupVoteCounts(
   ];
   if (normalizedIds.length === 0) return {};
 
-  // Use a server-only admin client so vote totals are reliable on first render
-  // even if `startup_votes` is protected by RLS for anon users.
-  const { data, error } = await supabase
+  // Service role bypasses RLS; we only read `startup_id` to compute totals.
+  const { data, error } = await supabaseAdmin
     .from("startup_votes")
     .select("startup_id")
     .in("startup_id", normalizedIds);
 
   if (error || !data) {
     if (process.env.NODE_ENV === "development" && error) {
-      console.warn("[vote] getStartupVoteCounts failed:", error.message);
+      console.warn("[vote] getStartupVoteCountsAdmin failed:", error.message);
     }
     return {};
   }
@@ -110,7 +110,7 @@ export async function getStartups(): Promise<Startup[]> {
   if (error || !data) return [];
 
   const startups = data as StartupRow[];
-  const voteCounts = await getStartupVoteCounts(
+  const voteCounts = await getStartupVoteCountsAdmin(
     startups.map((s) => String(s.id)),
   );
   const authorUserIds = startups
@@ -120,15 +120,6 @@ export async function getStartups(): Promise<Startup[]> {
     getProfileNicknames(authorUserIds),
     getUserEmailsById(supabase, authorUserIds),
   ]);
-
-  if (process.env.NODE_ENV === "development" && startups.length > 0) {
-    const keys = Object.keys(voteCounts);
-    console.debug("[vote:server] getStartups", {
-      startupIdsSample: startups.slice(0, 5).map((s) => s.id),
-      voteCountKeysSample: keys.slice(0, 5),
-      voteCountMapSize: keys.length,
-    });
-  }
 
   return startups.map((s) => {
     const userId = s.user_id ? String(s.user_id) : "";
@@ -153,7 +144,7 @@ export async function getStartupsByUserId(userId: string): Promise<Startup[]> {
   if (error || !data) return [];
 
   const startups = data as StartupRow[];
-  const voteCounts = await getStartupVoteCounts(
+  const voteCounts = await getStartupVoteCountsAdmin(
     startups.map((s) => String(s.id)),
   );
   const authorUserIds = startups
@@ -188,7 +179,7 @@ export async function getStartupById(id: string): Promise<Startup | null> {
 
   const row = data as StartupRow;
   const idKey = String(row.id);
-  const voteCounts = await getStartupVoteCounts([idKey]);
+  const voteCounts = await getStartupVoteCountsAdmin([idKey]);
   const authorUserIds = row.user_id ? [String(row.user_id)] : [];
   const [nicknameByUserId, emailByUserId] = await Promise.all([
     getProfileNicknames(authorUserIds),
@@ -202,3 +193,4 @@ export async function getStartupById(id: string): Promise<Startup | null> {
     row.user_id ? emailByUserId[String(row.user_id)] ?? null : null,
   );
 }
+
