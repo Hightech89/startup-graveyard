@@ -24,26 +24,48 @@ export default function AuthCallbackPage() {
     let mounted = true;
 
     async function finalize() {
-      // Supabase email links can come as either:
-      // - PKCE code in query string (?code=...)
-      // - token params in hash (#access_token=...)
-      // supabase-js v2 can parse the full URL for exchange.
-      const url = typeof window !== "undefined" ? window.location.href : "";
       try {
-        const { data, error } = await supabase.auth.exchangeCodeForSession(url);
+        const href = typeof window !== "undefined" ? window.location.href : "";
+        const hash = typeof window !== "undefined" ? window.location.hash : "";
+
+        // Email confirmation links carry a session in the URL hash (no PKCE).
+        // OAuth/PKCE redirects carry `?code=...` and require `exchangeCodeForSession`.
+        const hasAccessTokenInHash = hash.includes("access_token=");
+        const hasCodeInQuery =
+          typeof window !== "undefined" &&
+          new URL(window.location.href).searchParams.has("code");
+
+        if (hasCodeInQuery && !hasAccessTokenInHash) {
+          const { error } = await supabase.auth.exchangeCodeForSession(href);
+          if (!mounted) return;
+          if (error) {
+            setStatus("error");
+            setMessage(error.message);
+            return;
+          }
+        }
+
+        // Give supabase-js a moment to detect session from the URL hash.
+        await new Promise((r) => setTimeout(r, 250));
         if (!mounted) return;
+
+        const { data, error } = await supabase.auth.getSession();
+        if (!mounted) return;
+
         if (error) {
           setStatus("error");
           setMessage(error.message);
           return;
         }
-        if (data?.session) {
+
+        if (data.session) {
           setStatus("ok");
           router.replace(next);
           return;
         }
+
         setStatus("error");
-        setMessage("No session returned. Please try logging in.");
+        setMessage("No session found. Please try logging in again.");
       } catch (err) {
         if (!mounted) return;
         setStatus("error");
