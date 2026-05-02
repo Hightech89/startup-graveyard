@@ -1,11 +1,13 @@
 "use client";
 
-import { CAUSE_PRESETS } from "@/src/lib/startup-form";
+import { CAUSE_PRESETS, INDUSTRY_PRESETS } from "@/src/lib/startup-form";
 
 export const startupFormInputClass =
   "mt-1 w-full min-w-0 max-w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-3 py-2.5 text-zinc-50 outline-none ring-orange-500/0 transition placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15";
 
 export const startupFormLabelClass = "text-sm font-semibold text-zinc-300";
+
+export const startupFormHintClass = "mt-1.5 text-xs leading-relaxed text-zinc-500";
 
 export type StartupFormFieldsProps = {
   idPrefix?: string;
@@ -14,6 +16,8 @@ export type StartupFormFieldsProps = {
   onNameChange: (value: string) => void;
   shortDescription: string;
   onShortDescriptionChange: (value: string) => void;
+  industry: string;
+  onIndustryChange: (value: string) => void;
   causePreset: string;
   onCausePresetChange: (value: string) => void;
   causeCustom: string;
@@ -31,6 +35,8 @@ export function StartupFormFields({
   onNameChange,
   shortDescription,
   onShortDescriptionChange,
+  industry,
+  onIndustryChange,
   causePreset,
   onCausePresetChange,
   causeCustom,
@@ -76,6 +82,31 @@ export function StartupFormFields({
           className={`${startupFormInputClass} min-h-[5rem] resize-y`}
           disabled={disabled}
         />
+      </div>
+
+      <div>
+        <label htmlFor={`${pid}industry`} className={startupFormLabelClass}>
+          Category
+        </label>
+        <select
+          id={`${pid}industry`}
+          name="industry"
+          value={industry}
+          onChange={(e) => onIndustryChange(e.target.value)}
+          className={startupFormInputClass}
+          disabled={disabled}
+          required
+          aria-describedby={`${pid}category-hint`}
+        >
+          {INDUSTRY_PRESETS.map((opt) => (
+            <option key={opt} value={opt} className="bg-zinc-900">
+              {opt}
+            </option>
+          ))}
+        </select>
+        <p id={`${pid}category-hint`} className={startupFormHintClass}>
+          Choose one category.
+        </p>
       </div>
 
       <div>
@@ -137,12 +168,17 @@ export function StartupFormFields({
           id={`${pid}tags`}
           name="tags"
           type="text"
-          placeholder="e.g. B2B, SaaS, AI"
+          placeholder="e.g. b2b, enterprise, bootstrapped"
           value={tagsInput}
           onChange={(e) => onTagsInputChange(e.target.value)}
           className={startupFormInputClass}
           disabled={disabled}
+          aria-describedby={`${pid}tags-hint`}
         />
+        <p id={`${pid}tags-hint`} className={startupFormHintClass}>
+          Add up to 3 tags. Saved tags are trimmed, lowercased, and duplicates are
+          removed.
+        </p>
       </div>
     </div>
   );

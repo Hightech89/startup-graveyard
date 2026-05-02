@@ -7,9 +7,13 @@ import type { Startup } from "@/types/startup";
 import { StartupFormFields } from "@/components/startup-form-fields";
 import { useToast } from "@/components/toast-context";
 import {
+  buildTagsArrayForSave,
   computeCauseOfDeath,
+  getCategoryTag,
+  INDUSTRY_PRESETS,
+  industryFromCategoryTag,
   initialCauseFields,
-  tagsFromInput,
+  initialTagsFieldValueFromStartup,
   validateStartupFields,
 } from "@/src/lib/startup-form";
 import { supabase } from "@/src/lib/supabase";
@@ -31,10 +35,15 @@ export function EditStartupForm({ startup }: EditStartupFormProps) {
   const [shortDescription, setShortDescription] = useState(
     startup.shortDescription,
   );
+  const [industry, setIndustry] = useState<(typeof INDUSTRY_PRESETS)[number]>(() =>
+    industryFromCategoryTag(getCategoryTag(startup.tags)),
+  );
   const [causePreset, setCausePreset] = useState(causeInit.preset);
   const [causeCustom, setCauseCustom] = useState(causeInit.custom);
   const [finalLesson, setFinalLesson] = useState(startup.finalLesson);
-  const [tagsInput, setTagsInput] = useState(startup.tags.join(", "));
+  const [tagsInput, setTagsInput] = useState(() =>
+    initialTagsFieldValueFromStartup(startup.tags),
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,7 +67,12 @@ export function EditStartupForm({ startup }: EditStartupFormProps) {
       return;
     }
 
-    const tags = tagsFromInput(tagsInput);
+    const built = buildTagsArrayForSave(tagsInput, industry);
+    if (!built.ok) {
+      setError(built.error);
+      return;
+    }
+    const tags = built.tags;
 
     setLoading(true);
 
@@ -136,6 +150,13 @@ export function EditStartupForm({ startup }: EditStartupFormProps) {
         onNameChange={setName}
         shortDescription={shortDescription}
         onShortDescriptionChange={setShortDescription}
+        industry={industry}
+        onIndustryChange={(v) => {
+          const preset = (INDUSTRY_PRESETS as readonly string[]).includes(v)
+            ? (v as (typeof INDUSTRY_PRESETS)[number])
+            : "Other";
+          setIndustry(preset);
+        }}
         causePreset={causePreset}
         onCausePresetChange={setCausePreset}
         causeCustom={causeCustom}

@@ -39,6 +39,26 @@ function loadSeed() {
   return parsed;
 }
 
+function normalizeSeedTags(tags) {
+  const list = Array.isArray(tags) ? tags.map((t) => String(t)) : [];
+  const categoryTags = list.filter((t) => t.toLowerCase().startsWith("category:"));
+  const category = categoryTags[0] ? categoryTags[0].toLowerCase() : "category:other";
+  const suffix = category.split(":").slice(1).join(":");
+  const deny = new Set([
+    category,
+    suffix,
+    suffix.replace(/-/g, ""),
+  ]);
+
+  const cleaned = list
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .filter((t) => !t.toLowerCase().startsWith("category:"))
+    .filter((t) => !deny.has(t.toLowerCase()));
+
+  return [...new Set([...cleaned, category])];
+}
+
 async function ensureSeedVoters(supabase, needed) {
   const count = Math.max(needed, 2);
   const desiredEmails = Array.from(
@@ -188,7 +208,7 @@ async function main() {
     short_description: s.shortDescription,
     cause_of_death: s.causeOfDeath,
     final_lesson: s.finalLesson,
-    tags: s.tags,
+    tags: normalizeSeedTags(s.tags),
     upvotes: typeof s.upvotes === "number" ? s.upvotes : 0,
     created_at: s.createdAt || nowIso,
   }));

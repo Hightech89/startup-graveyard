@@ -12,6 +12,12 @@ import { navPrimaryLinkClass } from "@/components/nav-actions";
 import { AuthStatus } from "./auth-status";
 import { StartupCard } from "./startup-card";
 import { supabase } from "@/src/lib/supabase";
+import {
+  getCategoryTag,
+  INDUSTRY_PRESETS,
+  industryFromCategoryTag,
+  type IndustryPreset,
+} from "@/src/lib/startup-form";
 
 type HomeFeedProps = {
   startups: Startup[];
@@ -30,26 +36,27 @@ function matchesQuery(startup: Startup, q: string) {
 
 export function HomeFeed({ startups }: HomeFeedProps) {
   const [query, setQuery] = useState("");
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<IndustryPreset | null>(
+    null,
+  );
   const [sort, setSort] = useState<"newest" | "top" | "az">("top");
   const [userVotedStartupIds, setUserVotedStartupIds] = useState<Set<string>>(
     new Set(),
   );
 
-  const allTags = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const s of startups) {
-      for (const t of s.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
-    }
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([tag]) => tag)
-      .slice(0, 10);
-  }, [startups]);
+  const categories = useMemo(() => {
+    // Always show the preset categories (clean UI).
+    return [...INDUSTRY_PRESETS];
+  }, []);
 
   const filtered = useMemo(() => {
     const base = startups.filter((s) => matchesQuery(s, query));
-    const tagged = selectedTag ? base.filter((s) => s.tags.includes(selectedTag)) : base;
+    const tagged = selectedCategory
+      ? base.filter((s) => {
+          const cat = industryFromCategoryTag(getCategoryTag(s.tags));
+          return cat === selectedCategory;
+        })
+      : base;
     const sorted = [...tagged].sort((a, b) => {
       if (sort === "az") return a.name.localeCompare(b.name);
       if (sort === "newest") {
@@ -63,7 +70,7 @@ export function HomeFeed({ startups }: HomeFeedProps) {
       return b.upvotes - a.upvotes;
     });
     return sorted;
-  }, [selectedTag, sort, startups, query]);
+  }, [selectedCategory, sort, startups, query]);
 
   const topStartups = useMemo(() => {
     if (startups.length === 0) return [];
@@ -85,14 +92,24 @@ export function HomeFeed({ startups }: HomeFeedProps) {
     const topIds = new Set(topStartups.map((t) => String(t.startup.id)));
     const remaining = startups.filter((s) => !topIds.has(String(s.id)));
     const base = remaining.filter((s) => matchesQuery(s, query));
-    const tagged = selectedTag ? base.filter((s) => s.tags.includes(selectedTag)) : base;
-    // Recently Buried is always newest-first (distinct from Top Startups).
-    return [...tagged].sort((a, b) => {
-      const ta = new Date(a.createdAt).getTime();
-      const tb = new Date(b.createdAt).getTime();
-      return (Number.isNaN(tb) ? 0 : tb) - (Number.isNaN(ta) ? 0 : ta);
+    const tagged = selectedCategory
+      ? base.filter((s) => {
+          const cat = industryFromCategoryTag(getCategoryTag(s.tags));
+          return cat === selectedCategory;
+        })
+      : base;
+    const sorted = [...tagged].sort((a, b) => {
+      if (sort === "az") return a.name.localeCompare(b.name);
+      if (sort === "newest") {
+        const ta = new Date(a.createdAt).getTime();
+        const tb = new Date(b.createdAt).getTime();
+        return (Number.isNaN(tb) ? 0 : tb) - (Number.isNaN(ta) ? 0 : ta);
+      }
+      // "top": sort remaining list by vote count too.
+      return b.upvotes - a.upvotes || a.name.localeCompare(b.name);
     });
-  }, [startups, topStartups, query, selectedTag]);
+    return sorted;
+  }, [startups, topStartups, query, selectedCategory, sort]);
 
   useEffect(() => {
     let mounted = true;
@@ -257,30 +274,30 @@ export function HomeFeed({ startups }: HomeFeedProps) {
                 <div className="flex min-w-0 flex-1 flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() => setSelectedTag(null)}
+                    onClick={() => setSelectedCategory(null)}
                     className={[
                       "rounded-full border px-3 py-1 text-xs font-semibold transition",
-                      selectedTag === null
+                      selectedCategory === null
                         ? "border-orange-500 bg-orange-500/15 text-orange-300"
                         : "border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:border-zinc-700",
                     ].join(" ")}
                   >
                     All tags
                   </button>
-                  {allTags.map((tag) => (
+                  {categories.map((cat) => (
                     <button
-                      key={tag}
+                      key={cat}
                       type="button"
-                      onClick={() => setSelectedTag(tag)}
+                      onClick={() => setSelectedCategory(cat)}
                       className={[
                         "max-w-full truncate rounded-full border px-3 py-1 text-xs font-semibold transition",
-                        selectedTag === tag
+                        selectedCategory === cat
                           ? "border-orange-500 bg-orange-500/15 text-orange-300"
                           : "border-zinc-800 bg-zinc-900/40 text-zinc-300 hover:border-zinc-700",
                       ].join(" ")}
-                      aria-pressed={selectedTag === tag}
+                      aria-pressed={selectedCategory === cat}
                     >
-                      {tag}
+                      {cat}
                     </button>
                   ))}
                 </div>
@@ -360,7 +377,7 @@ export function HomeFeed({ startups }: HomeFeedProps) {
                 type="button"
                 onClick={() => {
                   setQuery("");
-                  setSelectedTag(null);
+                  setSelectedCategory(null);
                 }}
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-full border border-zinc-600 bg-zinc-900/50 px-5 py-2 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800/60 sm:w-auto"
               >

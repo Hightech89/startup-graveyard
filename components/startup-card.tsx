@@ -1,6 +1,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Startup } from "@/types/startup";
+import {
+  getCategoryTag,
+  industryFromCategoryTag,
+  tagsWithoutCategoryNoise,
+} from "@/src/lib/startup-form";
 import { StartupVoteButton } from "./startup-vote-button";
 
 type StartupCardProps = {
@@ -21,6 +26,8 @@ export function StartupCard({
   const authorEmail =
     typeof startup.authorEmail === "string" ? startup.authorEmail.trim() : "";
   const authorLabel = authorName || authorEmail;
+  const category = industryFromCategoryTag(getCategoryTag(startup.tags));
+  const displayTags = tagsWithoutCategoryNoise(startup.tags);
 
   return (
     <article className="group relative min-w-0 rounded-[1.2rem] border border-zinc-700 bg-zinc-900/85 p-6 shadow-[0_14px_30px_-18px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.02)] transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out [border-top-left-radius:2rem] [border-top-right-radius:2rem] hover:-translate-y-0.5 hover:border-zinc-500 hover:bg-zinc-800/95 hover:shadow-[0_20px_40px_-18px_rgba(0,0,0,0.92),0_0_0_1px_rgba(255,255,255,0.05)]">
@@ -71,7 +78,12 @@ export function StartupCard({
 
         <footer className="flex flex-col gap-4 border-t border-zinc-800/90 pt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
           <ul className="flex min-w-0 flex-1 flex-wrap content-start gap-2 sm:gap-2.5">
-            {startup.tags.map((tag) => (
+            <li key={`category-${category}`}>
+              <span className="inline-flex max-w-full items-center break-words rounded-md border border-zinc-700/70 bg-zinc-950/30 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+                {category}
+              </span>
+            </li>
+            {displayTags.map((tag) => (
               <li key={tag}>
                 <span className="inline-flex max-w-full items-center break-words rounded-md border border-zinc-700/70 bg-zinc-950/30 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500">
                   {tag}

@@ -30,6 +30,7 @@ export default async function StartupPage({ params }: PageProps) {
   if (!startup) notFound();
 
   const comments = await getStartupComments(startup.id);
+  const titleName = startup.name.trim() || "Untitled";
 
   return (
     <div className="min-h-full min-w-0 bg-zinc-950 text-zinc-50">
@@ -40,7 +41,8 @@ export default async function StartupPage({ params }: PageProps) {
             <AuthStatus />
           </div>
           <h1 className="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Startup
+            <span className="min-w-0 break-words">{titleName}</span>
+            <span className="font-normal text-zinc-500"> · Startup Graveyard</span>
           </h1>
           <p className="mt-2 max-w-xl text-zinc-400">
             Upvote what’s worth saving. Learn why it didn’t make it.

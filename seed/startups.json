@@ -12,7 +12,7 @@
     "shortDescription": "A $400 juicer that offered little value beyond what users could do by hand.",
     "causeOfDeath": "Overengineering",
     "finalLesson": "If a simpler solution exists, users will find it. Overengineering destroys perceived value.",
-    "tags": ["hardware", "pricing", "ux", "category:hardware"],
+    "tags": ["pricing", "ux", "category:hardware"],
     "seedVotes": 7
   },
   {
@@ -20,7 +20,7 @@
     "shortDescription": "A blood-testing startup that collapsed after its core technology failed to deliver.",
     "causeOfDeath": "Product Integrity",
     "finalLesson": "You cannot fake core technology. Trust is impossible to rebuild once broken.",
-    "tags": ["health", "fraud", "trust", "category:healthtech"],
+    "tags": ["fraud", "trust", "category:healthtech"],
     "seedVotes": 9
   },
   {
@@ -28,7 +28,7 @@
     "shortDescription": "An online pet supply company that couldn't sustain the cost of shipping low-margin goods.",
     "causeOfDeath": "Bad Unit Economics",
     "finalLesson": "Revenue does not equal profit. Logistics costs can kill a business.",
-    "tags": ["ecommerce", "logistics", "dotcom", "category:e-commerce"],
+    "tags": ["logistics", "dotcom", "category:e-commerce"],
     "seedVotes": 6
   },
   {
@@ -36,7 +36,7 @@
     "shortDescription": "A short-form video platform that failed to retain creators due to lack of monetization.",
     "causeOfDeath": "Monetization Failure",
     "finalLesson": "Creators follow incentives. Platforms must reward their power users.",
-    "tags": ["social", "creators", "monetization", "category:social"],
+    "tags": ["creators", "monetization", "category:social"],
     "seedVotes": 8
   },
   {
@@ -44,7 +44,7 @@
     "shortDescription": "A cloud gaming service that struggled to convince users to switch from traditional platforms.",
     "causeOfDeath": "Product-Market Fit",
     "finalLesson": "Convenience must outweigh existing habits. New platforms need strong exclusive value.",
-    "tags": ["gaming", "cloud", "pmf", "category:gaming"],
+    "tags": ["cloud", "pmf", "category:gaming"],
     "seedVotes": 5
   },
   {
@@ -68,7 +68,7 @@
     "shortDescription": "A used car marketplace that couldn't sustain its operational and logistics costs.",
     "causeOfDeath": "Unit Economics",
     "finalLesson": "Margins matter more than growth. Operational complexity scales faster than expected.",
-    "tags": ["marketplace", "cars", "logistics", "category:marketplace"],
+    "tags": ["cars", "logistics", "category:marketplace"],
     "seedVotes": 3
   },
   {
@@ -76,7 +76,7 @@
     "shortDescription": "A heavily funded social app that failed to deliver a clear or compelling user experience.",
     "causeOfDeath": "No Product-Market Fit",
     "finalLesson": "Funding does not guarantee adoption. Users must instantly understand the product.",
-    "tags": ["social", "ux", "pmf", "category:social"],
+    "tags": ["ux", "pmf", "category:social"],
     "seedVotes": 2
   }
 ]

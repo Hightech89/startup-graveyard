@@ -6,8 +6,9 @@ import { useState } from "react";
 import { useToast } from "@/components/toast-context";
 import { StartupFormFields } from "@/components/startup-form-fields";
 import {
+  buildTagsArrayForSave,
   computeCauseOfDeath,
-  tagsFromInput,
+  INDUSTRY_PRESETS,
   validateStartupFields,
 } from "@/src/lib/startup-form";
 import { supabase } from "@/src/lib/supabase";
@@ -17,6 +18,9 @@ export function SubmitStartupForm() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [shortDescription, setShortDescription] = useState("");
+  const [industry, setIndustry] = useState<(typeof INDUSTRY_PRESETS)[number]>(
+    "SaaS",
+  );
   const [causePreset, setCausePreset] = useState<string>("Ran out of funding");
   const [causeCustom, setCauseCustom] = useState("");
   const [finalLesson, setFinalLesson] = useState("");
@@ -46,7 +50,12 @@ export function SubmitStartupForm() {
       return;
     }
 
-    const tags = tagsFromInput(tagsInput);
+    const built = buildTagsArrayForSave(tagsInput, industry);
+    if (!built.ok) {
+      setError(built.error);
+      return;
+    }
+    const tags = built.tags;
 
     setLoading(true);
 
@@ -125,6 +134,13 @@ export function SubmitStartupForm() {
         onNameChange={setName}
         shortDescription={shortDescription}
         onShortDescriptionChange={setShortDescription}
+        industry={industry}
+        onIndustryChange={(v) => {
+          const preset = (INDUSTRY_PRESETS as readonly string[]).includes(v)
+            ? (v as (typeof INDUSTRY_PRESETS)[number])
+            : "Other";
+          setIndustry(preset);
+        }}
         causePreset={causePreset}
         onCausePresetChange={setCausePreset}
         causeCustom={causeCustom}
