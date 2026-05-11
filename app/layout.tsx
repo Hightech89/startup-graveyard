@@ -1,11 +1,36 @@
 import type { Metadata } from "next";
 import { AppProviders } from "@/components/app-providers";
+import { getSiteUrl } from "@/src/lib/site-url";
 import "./globals.css";
 
+const siteName = "Startup Graveyard";
+const description =
+  "Browse failed startups, learn what went wrong, and pay your respects.";
+
 export const metadata: Metadata = {
-  title: "Startup Graveyard",
-  description:
-    "Browse failed startups, learn what went wrong, and pay your respects.",
+  metadataBase: new URL(getSiteUrl()),
+  applicationName: siteName,
+  title: {
+    default: siteName,
+    template: `%s | ${siteName}`,
+  },
+  description,
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName,
+    title: siteName,
+    description,
+  },
+  twitter: {
+    card: "summary",
+    title: siteName,
+    description,
+  },
 };
 
 export default function RootLayout({
