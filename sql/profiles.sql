@@ -6,17 +6,19 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
-grant usage on schema public to authenticated;
+grant usage on schema public to anon, authenticated;
+grant select (id, nickname) on table public.profiles to anon;
 grant select, insert, update on table public.profiles to authenticated;
 
 alter table public.profiles enable row level security;
 
 drop policy if exists "profiles_select_own" on public.profiles;
-create policy "profiles_select_own"
+drop policy if exists "profiles_select_public" on public.profiles;
+create policy "profiles_select_public"
   on public.profiles
   for select
-  to authenticated
-  using (auth.uid() = id);
+  to anon, authenticated
+  using (true);
 
 drop policy if exists "profiles_insert_own" on public.profiles;
 create policy "profiles_insert_own"
@@ -49,21 +51,5 @@ before update on public.profiles
 for each row
 execute function public.set_updated_at();
 
--- Narrow auth lookup for public display fallbacks (nickname -> email).
--- Returns only id/email for explicit user IDs provided by the caller.
-create or replace function public.get_user_emails(user_ids uuid[])
-returns table(id uuid, email text)
-language sql
-security definer
-set search_path = public, auth
-as $$
-  select u.id, u.email::text
-  from auth.users u
-  where u.id = any(user_ids)
-    and u.email is not null
-$$;
-
-revoke all on function public.get_user_emails(uuid[]) from public;
-grant execute on function public.get_user_emails(uuid[]) to anon;
-grant execute on function public.get_user_emails(uuid[]) to authenticated;
-
+-- Public author display must not expose auth.users.email.
+drop function if exists public.get_user_emails(uuid[]);

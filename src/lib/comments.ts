@@ -1,6 +1,5 @@
 import type { StartupComment } from "@/types/comment";
 import { supabase } from "./supabase";
-import { getUserEmailsById } from "./user-identities";
 
 type CommentRow = {
   id: string;
@@ -35,7 +34,6 @@ export async function getStartupComments(
   ];
 
   let nicknameByUserId: Record<string, string | null> = {};
-  const emailByUserId = await getUserEmailsById(supabase, userIds);
   if (userIds.length > 0) {
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
@@ -56,7 +54,6 @@ export async function getStartupComments(
     id: row.id,
     userId: row.user_id,
     authorNickname: nicknameByUserId[String(row.user_id)] ?? null,
-    authorEmail: emailByUserId[String(row.user_id)] ?? null,
     content: row.content,
     createdAt: row.created_at,
   }));

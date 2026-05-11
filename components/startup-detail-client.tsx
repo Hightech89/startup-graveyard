@@ -9,7 +9,10 @@ import { StartupOwnerActions } from "./startup-owner-actions";
 
 export function StartupDetailClient({ startup }: { startup: Startup }) {
   const [userHasVoted, setUserHasVoted] = useState(false);
-  const [clientVoteCount, setClientVoteCount] = useState<number | null>(null);
+  const [clientVoteState, setClientVoteState] = useState<{
+    startupId: string;
+    count: number | null;
+  } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -36,9 +39,9 @@ export function StartupDetailClient({ startup }: { startup: Startup }) {
       }
 
       if (!countError && rows) {
-        setClientVoteCount(rows.length);
+        setClientVoteState({ startupId: id, count: rows.length });
       } else {
-        setClientVoteCount(null);
+        setClientVoteState({ startupId: id, count: null });
       }
 
       const {
@@ -82,12 +85,16 @@ export function StartupDetailClient({ startup }: { startup: Startup }) {
       setUserHasVoted(voted);
     }
 
-    setClientVoteCount(null);
     void loadVoteState();
     return () => {
       mounted = false;
     };
   }, [startup.id]);
+
+  const clientVoteCount =
+    clientVoteState?.startupId === String(startup.id)
+      ? clientVoteState.count
+      : null;
 
   const displayStartup: Startup = {
     ...startup,

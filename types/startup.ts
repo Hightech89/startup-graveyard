@@ -4,8 +4,6 @@ export type Startup = {
   userId?: string;
   /** Optional author display name (nickname when available). */
   authorName?: string;
-  /** Author email used as fallback when nickname is missing. */
-  authorEmail?: string;
   name: string;
   shortDescription: string;
   causeOfDeath: string;

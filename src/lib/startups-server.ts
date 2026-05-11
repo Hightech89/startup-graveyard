@@ -1,7 +1,6 @@
 import type { Startup } from "@/types/startup";
 import { supabase } from "./supabase";
 import { supabaseAdmin } from "./supabase-admin";
-import { getUserEmailsById } from "./user-identities";
 
 type StartupRow = {
   id: string;
@@ -23,13 +22,11 @@ function mapRow(
   row: StartupRow,
   upvotes: number,
   authorName?: string | null,
-  authorEmail?: string | null,
 ): Startup {
   return {
     id: String(row.id),
     userId: row.user_id ?? undefined,
     authorName: authorName ?? undefined,
-    authorEmail: authorEmail ?? undefined,
     name: row.name,
     shortDescription: row.short_description,
     causeOfDeath: row.cause_of_death,
@@ -116,10 +113,7 @@ export async function getStartups(): Promise<Startup[]> {
   const authorUserIds = startups
     .map((s) => (s.user_id ? String(s.user_id) : ""))
     .filter(Boolean);
-  const [nicknameByUserId, emailByUserId] = await Promise.all([
-    getProfileNicknames(authorUserIds),
-    getUserEmailsById(supabase, authorUserIds),
-  ]);
+  const nicknameByUserId = await getProfileNicknames(authorUserIds);
 
   return startups.map((s) => {
     const userId = s.user_id ? String(s.user_id) : "";
@@ -127,7 +121,6 @@ export async function getStartups(): Promise<Startup[]> {
       s,
       voteCounts[String(s.id)] ?? 0,
       userId ? nicknameByUserId[userId] ?? null : null,
-      userId ? emailByUserId[userId] ?? null : null,
     );
   });
 }
@@ -150,10 +143,7 @@ export async function getStartupsByUserId(userId: string): Promise<Startup[]> {
   const authorUserIds = startups
     .map((s) => (s.user_id ? String(s.user_id) : ""))
     .filter(Boolean);
-  const [nicknameByUserId, emailByUserId] = await Promise.all([
-    getProfileNicknames(authorUserIds),
-    getUserEmailsById(supabase, authorUserIds),
-  ]);
+  const nicknameByUserId = await getProfileNicknames(authorUserIds);
 
   return startups.map((s) => {
     const uid = s.user_id ? String(s.user_id) : "";
@@ -161,7 +151,6 @@ export async function getStartupsByUserId(userId: string): Promise<Startup[]> {
       s,
       voteCounts[String(s.id)] ?? 0,
       uid ? nicknameByUserId[uid] ?? null : null,
-      uid ? emailByUserId[uid] ?? null : null,
     );
   });
 }
@@ -181,16 +170,11 @@ export async function getStartupById(id: string): Promise<Startup | null> {
   const idKey = String(row.id);
   const voteCounts = await getStartupVoteCountsAdmin([idKey]);
   const authorUserIds = row.user_id ? [String(row.user_id)] : [];
-  const [nicknameByUserId, emailByUserId] = await Promise.all([
-    getProfileNicknames(authorUserIds),
-    getUserEmailsById(supabase, authorUserIds),
-  ]);
+  const nicknameByUserId = await getProfileNicknames(authorUserIds);
 
   return mapRow(
     row,
     voteCounts[idKey] ?? 0,
     row.user_id ? nicknameByUserId[String(row.user_id)] ?? null : null,
-    row.user_id ? emailByUserId[String(row.user_id)] ?? null : null,
   );
 }
-

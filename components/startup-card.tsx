@@ -23,9 +23,7 @@ export function StartupCard({
   const detailHref = `/startups/${startup.id}`;
   const authorName =
     typeof startup.authorName === "string" ? startup.authorName.trim() : "";
-  const authorEmail =
-    typeof startup.authorEmail === "string" ? startup.authorEmail.trim() : "";
-  const authorLabel = authorName || authorEmail;
+  const authorLabel = authorName || "Anonymous user";
   const category = industryFromCategoryTag(getCategoryTag(startup.tags));
   const displayTags = tagsWithoutCategoryNoise(startup.tags);
 
@@ -41,11 +39,7 @@ export function StartupCard({
           <h3 className="break-words text-lg font-bold leading-snug tracking-tight text-zinc-50 transition-colors duration-200 group-hover:text-orange-200 sm:text-xl">
             {startup.name}
           </h3>
-          {authorLabel ? (
-            <p className="text-xs font-medium text-zinc-500">
-              By {authorLabel}
-            </p>
-          ) : null}
+          <p className="text-xs font-medium text-zinc-500">By {authorLabel}</p>
           {startup.shortDescription ? (
             <p className="break-words text-sm leading-relaxed text-zinc-500">
               {startup.shortDescription}
