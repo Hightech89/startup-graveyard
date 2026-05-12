@@ -16,10 +16,30 @@ type PageProps = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const startup = await getStartupById(id);
-  if (!startup) return { title: "Not found · Startup Graveyard" };
+  if (!startup) return { title: "Not found" };
+
+  const title = startup.name.trim() || "Untitled startup";
+  const description = startup.shortDescription;
+  const path = `/startups/${startup.id}`;
+
   return {
-    title: `${startup.name} · Startup Graveyard`,
-    description: startup.shortDescription,
+    title,
+    description,
+    alternates: {
+      canonical: path,
+    },
+    openGraph: {
+      type: "article",
+      url: path,
+      title: `${title} | Startup Graveyard`,
+      description,
+      siteName: "Startup Graveyard",
+    },
+    twitter: {
+      card: "summary",
+      title: `${title} | Startup Graveyard`,
+      description,
+    },
   };
 }
 

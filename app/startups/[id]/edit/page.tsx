@@ -14,10 +14,13 @@ type PageProps = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const startup = await getStartupById(id);
-  if (!startup) return { title: "Not found · Startup Graveyard" };
+  if (!startup) return { title: "Not found" };
   return {
-    title: `Edit ${startup.name} · Startup Graveyard`,
+    title: `Edit ${startup.name}`,
     description: `Update ${startup.name} on Startup Graveyard.`,
+    alternates: {
+      canonical: `/startups/${startup.id}/edit`,
+    },
   };
 }
 

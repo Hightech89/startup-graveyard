@@ -4,8 +4,11 @@ import { SiteHeader } from "@/components/site-header";
 import { ProfileView } from "@/components/profile-view";
 
 export const metadata: Metadata = {
-  title: "Profile · Startup Graveyard",
+  title: "Profile",
   description: "Your account and submitted startups.",
+  alternates: {
+    canonical: "/profile",
+  },
 };
 
 export default function ProfilePage() {

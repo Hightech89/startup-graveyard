@@ -4,8 +4,11 @@ import { SiteHeader } from "@/components/site-header";
 import { SubmitAuthGuard } from "@/components/submit-auth-guard";
 
 export const metadata: Metadata = {
-  title: "Submit startup · Startup Graveyard",
+  title: "Submit startup",
   description: "Add a failed startup to the graveyard.",
+  alternates: {
+    canonical: "/submit",
+  },
 };
 
 export default function SubmitPage() {
