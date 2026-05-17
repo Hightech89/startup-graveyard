@@ -17,6 +17,7 @@ function friendlyDeleteError(): string {
 type StartupOwnerActionsProps = {
   startupId: string;
   ownerUserId: string;
+  editLabel?: string;
   /** Called after a successful delete (e.g. refetch profile list). Default: go home. */
   onDeleted?: () => void;
 };
@@ -24,6 +25,7 @@ type StartupOwnerActionsProps = {
 export function StartupOwnerActions({
   startupId,
   ownerUserId,
+  editLabel = "Edit",
   onDeleted,
 }: StartupOwnerActionsProps) {
   const showToast = useToast();
@@ -117,7 +119,7 @@ export function StartupOwnerActions({
           href={`/startups/${startupId}/edit`}
           className={subtleActionClass}
         >
-          Edit
+          {editLabel}
         </Link>
         <span className="text-zinc-600" aria-hidden>
           ·

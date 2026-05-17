@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { Startup } from "@/types/startup";
+import type { Startup, StartupStatus } from "@/types/startup";
 import {
   getCategoryTag,
   industryFromCategoryTag,
@@ -11,16 +11,30 @@ import { StartupVoteButton } from "./startup-vote-button";
 type StartupCardProps = {
   startup: Startup;
   userHasVoted?: boolean;
+  href?: string;
+  linkLabel?: string;
+  status?: StartupStatus;
+  statusLabel?: string;
   /** Extra actions in the footer row with the vote control (e.g. copy link on detail page). */
   detailActions?: ReactNode;
+};
+
+const statusBadgeClass: Record<StartupStatus, string> = {
+  pending: "border-amber-500/40 bg-amber-500/10 text-amber-200",
+  approved: "border-emerald-500/35 bg-emerald-500/10 text-emerald-200",
+  rejected: "border-red-500/35 bg-red-500/10 text-red-200",
 };
 
 export function StartupCard({
   startup,
   userHasVoted = false,
+  href,
+  linkLabel,
+  status,
+  statusLabel,
   detailActions,
 }: StartupCardProps) {
-  const detailHref = `/startups/${startup.id}`;
+  const detailHref = href ?? `/startups/${startup.id}`;
   const authorName =
     typeof startup.authorName === "string" ? startup.authorName.trim() : "";
   const authorLabel = authorName || "Anonymous user";
@@ -32,14 +46,25 @@ export function StartupCard({
       <Link
         href={detailHref}
         className="absolute inset-0 z-0 block rounded-[1.2rem] [border-top-left-radius:2rem] [border-top-right-radius:2rem]"
-        aria-label={`View ${startup.name}`}
+        aria-label={linkLabel ?? `View ${startup.name}`}
       />
       <div className="relative z-10 min-w-0 flex-1 space-y-6 pointer-events-none">
         <header className="space-y-2.5 pr-1">
           <h3 className="break-words text-lg font-bold leading-snug tracking-tight text-zinc-50 transition-colors duration-200 group-hover:text-orange-200 sm:text-xl">
             {startup.name}
           </h3>
-          <p className="text-xs font-medium text-zinc-500">By {authorLabel}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-medium text-zinc-500">
+              By {authorLabel}
+            </p>
+            {status && statusLabel ? (
+              <span
+                className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${statusBadgeClass[status]}`}
+              >
+                {statusLabel}
+              </span>
+            ) : null}
+          </div>
           {startup.shortDescription ? (
             <p className="break-words text-sm leading-relaxed text-zinc-500">
               {startup.shortDescription}

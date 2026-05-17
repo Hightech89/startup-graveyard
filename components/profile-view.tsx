@@ -26,6 +26,12 @@ type ProfileRow = {
 
 const MAX_NICKNAME_LENGTH = 20;
 
+const statusLabels = {
+  pending: "Pending review",
+  approved: "Approved",
+  rejected: "Rejected",
+} satisfies Record<NonNullable<Startup["status"]>, string>;
+
 function logProfileEvent(event: string, payload?: unknown) {
   console.info(`[profile] ${event}`, payload ?? "");
 }
@@ -347,27 +353,45 @@ export function ProfileView() {
           </div>
         ) : (
           <ul className="mt-6 grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
-            {startups.map((s) => (
-              <li key={s.id} className="space-y-2">
-                {s.userId ? (
-                  <StartupOwnerActions
-                    startupId={s.id}
-                    ownerUserId={s.userId}
-                    onDeleted={reloadSubmissions}
+            {startups.map((s) => {
+              const status = s.status ?? "approved";
+              const isApproved = status === "approved";
+              const href = isApproved
+                ? `/startups/${s.id}`
+                : `/startups/${s.id}/edit`;
+              const actionLabel = isApproved ? "Edit" : "Edit submission";
+
+              return (
+                <li key={s.id} className="space-y-2">
+                  {s.userId ? (
+                    <StartupOwnerActions
+                      startupId={s.id}
+                      ownerUserId={s.userId}
+                      editLabel={actionLabel}
+                      onDeleted={reloadSubmissions}
+                    />
+                  ) : null}
+                  <StartupCard
+                    startup={{
+                      ...s,
+                      authorName:
+                        s.authorName && s.authorName.trim().length > 0
+                          ? s.authorName
+                          : (user.email ?? undefined),
+                    }}
+                    href={href}
+                    linkLabel={
+                      isApproved
+                        ? `View ${s.name}`
+                        : `Edit submission ${s.name}`
+                    }
+                    status={status}
+                    statusLabel={statusLabels[status]}
+                    userHasVoted={votedIds.has(String(s.id))}
                   />
-                ) : null}
-                <StartupCard
-                  startup={{
-                    ...s,
-                    authorName:
-                      s.authorName && s.authorName.trim().length > 0
-                        ? s.authorName
-                        : (user.email ?? undefined),
-                  }}
-                  userHasVoted={votedIds.has(String(s.id))}
-                />
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
