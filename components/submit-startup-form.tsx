@@ -28,11 +28,13 @@ export function SubmitStartupForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needsAuth, setNeedsAuth] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setNeedsAuth(false);
+    setSubmitted(false);
 
     const causeOfDeath = computeCauseOfDeath(
       causePreset,
@@ -91,6 +93,7 @@ export function SubmitStartupForm() {
       final_lesson: finalLesson.trim(),
       tags,
       upvotes: 0,
+      status: "pending",
     });
 
     setLoading(false);
@@ -101,8 +104,15 @@ export function SubmitStartupForm() {
       return;
     }
 
-    showToast("Startup submitted");
-    router.push("/");
+    const message =
+      "Thanks for submitting. Your startup is pending review before it appears publicly.";
+    showToast(message);
+    setSubmitted(true);
+    setName("");
+    setShortDescription("");
+    setCauseCustom("");
+    setFinalLesson("");
+    setTagsInput("");
     router.refresh();
   }
 
@@ -125,6 +135,16 @@ export function SubmitStartupForm() {
               Go to /auth
             </Link>
           ) : null}
+        </p>
+      ) : null}
+
+      {submitted ? (
+        <p
+          className="break-words rounded-xl border border-orange-500/40 bg-orange-500/10 px-4 py-3 text-sm text-orange-100"
+          role="status"
+        >
+          Thanks for submitting. Your startup is pending review before it
+          appears publicly.
         </p>
       ) : null}
 

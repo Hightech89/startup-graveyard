@@ -210,6 +210,7 @@ async function main() {
     final_lesson: s.finalLesson,
     tags: normalizeSeedTags(s.tags),
     upvotes: typeof s.upvotes === "number" ? s.upvotes : 0,
+    status: "approved",
     created_at: s.createdAt || nowIso,
   }));
 
@@ -282,4 +283,3 @@ main().catch((err) => {
   console.error(err);
   process.exitCode = 1;
 });
-

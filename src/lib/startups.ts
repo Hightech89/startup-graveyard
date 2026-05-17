@@ -1,4 +1,4 @@
-import type { Startup } from "@/types/startup";
+import type { Startup, StartupStatus } from "@/types/startup";
 import { supabase } from "./supabase";
 
 type StartupRow = {
@@ -10,6 +10,7 @@ type StartupRow = {
   final_lesson: string;
   tags: string[] | null;
   created_at: string;
+  status?: string | null;
 };
 
 type ProfileNicknameRow = {
@@ -26,6 +27,7 @@ function mapRow(
     id: String(row.id),
     userId: row.user_id ?? undefined,
     authorName: authorName ?? undefined,
+    status: isStartupStatus(row.status) ? row.status : undefined,
     name: row.name,
     shortDescription: row.short_description,
     causeOfDeath: row.cause_of_death,
@@ -34,6 +36,10 @@ function mapRow(
     upvotes,
     createdAt: row.created_at,
   };
+}
+
+function isStartupStatus(value: unknown): value is StartupStatus {
+  return value === "pending" || value === "approved" || value === "rejected";
 }
 
 async function getStartupVoteCounts(
@@ -101,8 +107,9 @@ export async function getStartups(): Promise<Startup[]> {
   const { data, error } = await supabase
     .from("startups")
     .select(
-      "id, user_id, name, short_description, cause_of_death, final_lesson, tags, created_at",
-    );
+      "id, user_id, name, short_description, cause_of_death, final_lesson, tags, created_at, status",
+    )
+    .eq("status", "approved");
 
   if (error || !data) return [];
 
@@ -138,7 +145,7 @@ export async function getStartupsByUserId(userId: string): Promise<Startup[]> {
   const { data, error } = await supabase
     .from("startups")
     .select(
-      "id, user_id, name, short_description, cause_of_death, final_lesson, tags, created_at",
+      "id, user_id, name, short_description, cause_of_death, final_lesson, tags, created_at, status",
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -168,9 +175,10 @@ export async function getStartupById(id: string): Promise<Startup | null> {
   const { data, error } = await supabase
     .from("startups")
     .select(
-      "id, user_id, name, short_description, cause_of_death, final_lesson, tags, created_at",
+      "id, user_id, name, short_description, cause_of_death, final_lesson, tags, created_at, status",
     )
     .eq("id", id)
+    .eq("status", "approved")
     .single();
 
   if (error || !data) return null;

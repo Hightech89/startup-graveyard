@@ -30,6 +30,8 @@ export function EditStartupForm({ startup }: EditStartupFormProps) {
   const showToast = useToast();
   const router = useRouter();
   const causeInit = initialCauseFields(startup.causeOfDeath);
+  const returnHref =
+    startup.status === "approved" ? `/startups/${startup.id}` : "/profile";
 
   const [name, setName] = useState(startup.name);
   const [shortDescription, setShortDescription] = useState(
@@ -125,7 +127,7 @@ export function EditStartupForm({ startup }: EditStartupFormProps) {
     }
 
     showToast("Startup updated");
-    router.push(`/startups/${startup.id}`);
+    router.push(returnHref);
     router.refresh();
   }
 
@@ -176,7 +178,7 @@ export function EditStartupForm({ startup }: EditStartupFormProps) {
           {loading ? "Saving…" : "Save changes"}
         </button>
         <Link
-          href={`/startups/${startup.id}`}
+          href={returnHref}
           className="text-sm font-medium text-zinc-400 hover:text-zinc-200"
         >
           Cancel
