@@ -86,7 +86,7 @@ export default function AuthCallbackPage() {
           {status === "working" ? (
             <>
               <h1 className="text-lg font-semibold text-zinc-50">
-                Finishing sign-in…
+                Finishing sign-in...
               </h1>
               <p className="mt-2 text-sm text-zinc-400">
                 Please wait a moment.
@@ -95,7 +95,7 @@ export default function AuthCallbackPage() {
           ) : status === "ok" ? (
             <>
               <h1 className="text-lg font-semibold text-zinc-50">Signed in</h1>
-              <p className="mt-2 text-sm text-zinc-400">Redirecting…</p>
+              <p className="mt-2 text-sm text-zinc-400">Redirecting...</p>
             </>
           ) : (
             <>
@@ -126,4 +126,3 @@ export default function AuthCallbackPage() {
     </div>
   );
 }
-

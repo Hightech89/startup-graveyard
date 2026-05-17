@@ -319,7 +319,7 @@ export function ProfileView() {
               {savingNickname ? "Saving..." : "Save nickname"}
             </button>
             {loadingProfile ? (
-              <p className="text-xs text-zinc-500">Loading profile…</p>
+              <p className="text-xs text-zinc-500">Loading profile...</p>
             ) : null}
           </div>
         </form>

@@ -42,7 +42,7 @@ export const MOCK_STARTUPS: Startup[] = [
     name: "GhostWriter CRM",
     shortDescription:
       "CRM that auto-drafts emails in your voice. Your voice was eerily passive-aggressive.",
-    causeOfDeath: "Enterprise sales cycle outlasted the founder’s patience and the product.",
+    causeOfDeath: "Enterprise sales cycle outlasted the founder's patience and the product.",
     finalLesson:
       "CRM that auto-drafts emails in your voice. Your voice was eerily passive-aggressive.",
     tags: ["SaaS", "Sales"],

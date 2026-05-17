@@ -65,7 +65,7 @@ export default async function StartupPage({ params }: PageProps) {
             <span className="font-normal text-zinc-500"> · Startup Graveyard</span>
           </h1>
           <p className="mt-2 max-w-xl text-zinc-400">
-            Upvote what’s worth saving. Learn why it didn’t make it.
+            {"Upvote what's worth saving. Learn why it didn't make it."}
           </p>
         </div>
       </header>

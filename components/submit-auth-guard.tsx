@@ -46,7 +46,7 @@ export function SubmitAuthGuard() {
   if (checking) {
     return (
       <div className="mx-auto w-full min-w-0 max-w-xl rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-        <p className="text-sm text-zinc-400">Checking your session…</p>
+        <p className="text-sm text-zinc-400">Checking your session...</p>
       </div>
     );
   }

@@ -127,7 +127,7 @@ export function StartupFormFields({
             </option>
           ))}
           <option value="__other__" className="bg-zinc-900">
-            Other…
+            Other...
           </option>
         </select>
         {causePreset === "__other__" ? (
@@ -135,7 +135,7 @@ export function StartupFormFields({
             id={`${pid}causeCustom`}
             name="causeCustom"
             rows={2}
-            placeholder="Describe what happened…"
+            placeholder="Describe what happened..."
             value={causeCustom}
             onChange={(e) => onCauseCustomChange(e.target.value)}
             className={`${startupFormInputClass} mt-2 min-h-[4rem] resize-y`}

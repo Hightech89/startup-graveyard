@@ -127,7 +127,7 @@ function CommentRow({
               disabled={saveDisabled || isSaving}
               className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold text-zinc-950 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSaving ? "Saving…" : "Save"}
+              {isSaving ? "Saving..." : "Save"}
             </button>
             <button
               type="button"
@@ -193,7 +193,7 @@ function CommentRow({
                   disabled={isDeleting}
                   className="rounded-lg bg-red-600/90 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {isDeleting ? "Deleting…" : "Delete"}
+                  {isDeleting ? "Deleting..." : "Delete"}
                 </button>
                 <button
                   type="button"
@@ -555,7 +555,7 @@ export function StartupComments({
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 disabled={submitting}
-                placeholder="Share your thoughts…"
+                placeholder="Share your thoughts..."
                 className={`${inputClass} min-h-[6rem] max-w-full resize-y disabled:opacity-60`}
                 aria-describedby="comment-counter"
               />
@@ -583,7 +583,7 @@ export function StartupComments({
               }
               className="inline-flex items-center justify-center rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "Posting…" : "Post comment"}
+              {submitting ? "Posting..." : "Post comment"}
             </button>
           </form>
           )}

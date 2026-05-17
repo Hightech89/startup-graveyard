@@ -175,7 +175,7 @@ export function EditStartupForm({ startup }: EditStartupFormProps) {
           disabled={loading}
           className="rounded-xl border border-orange-500/60 bg-orange-500/15 px-5 py-2.5 text-sm font-semibold text-orange-200 transition hover:bg-orange-500/25 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? "Saving…" : "Save changes"}
+          {loading ? "Saving..." : "Save changes"}
         </button>
         <Link
           href={returnHref}

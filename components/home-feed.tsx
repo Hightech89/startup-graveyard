@@ -259,7 +259,7 @@ export function HomeFeed({ startups }: HomeFeedProps) {
               <input
                 id="startup-search"
                 type="search"
-                placeholder="Search by name, tag, or cause of death…"
+                placeholder="Search by name, tag, or cause of death..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 py-3 pl-11 pr-4 text-zinc-50 shadow-inner outline-none ring-orange-500/0 transition-[box-shadow,border-color] placeholder:text-zinc-500 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/15"

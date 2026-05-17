@@ -156,7 +156,7 @@ async function main() {
   console.log(`[seed:startups] existing startups=${ids.length}`);
 
   if (ids.length > 0) {
-    console.log("[seed:startups] deleting dependent startup_votes…");
+    console.log("[seed:startups] deleting dependent startup_votes...");
     const { error: votesError, count: votesDeleted } = await supabase
       .from("startup_votes")
       .delete({ count: "exact" })
@@ -169,7 +169,7 @@ async function main() {
       `[seed:startups] deleted startup_votes (count may be null)=${votesDeleted ?? "n/a"}`,
     );
 
-    console.log("[seed:startups] deleting dependent startup_comments…");
+    console.log("[seed:startups] deleting dependent startup_comments...");
     const { error: commentsError, count: commentsDeleted } = await supabase
       .from("startup_comments")
       .delete({ count: "exact" })
@@ -183,7 +183,7 @@ async function main() {
     );
   }
 
-  console.log("[seed:startups] deleting startups…");
+  console.log("[seed:startups] deleting startups...");
   const { error: deleteStartupsError, count: startupsDeleted } = await supabase
     .from("startups")
     .delete({ count: "exact" })
@@ -214,7 +214,7 @@ async function main() {
     created_at: s.createdAt || nowIso,
   }));
 
-  console.log("[seed:startups] inserting seed startups…");
+  console.log("[seed:startups] inserting seed startups...");
   const { error: insertError, data: insertedRows } = await supabase
     .from("startups")
     .insert(payload)
@@ -258,7 +258,7 @@ async function main() {
   }
 
   if (voteRows.length > 0) {
-    console.log(`[seed:startups] inserting startup_votes rows=${voteRows.length}…`);
+    console.log(`[seed:startups] inserting startup_votes rows=${voteRows.length}...`);
     const { error: votesInsertError } = await supabase
       .from("startup_votes")
       .insert(voteRows);
