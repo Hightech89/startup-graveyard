@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { BackNavLink } from "@/components/back-nav-link";
 import { AuthStatus } from "@/components/auth-status";
 import { StartupComments } from "@/components/startup-comments";
@@ -7,7 +8,9 @@ import { StartupDetailClient } from "@/components/startup-detail-client";
 import { getStartupComments } from "@/src/lib/comments";
 import { getStartupById } from "@/src/lib/startups-server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
+const getCachedStartupById = cache(getStartupById);
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -15,7 +18,7 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const startup = await getStartupById(id);
+  const startup = await getCachedStartupById(id);
   if (!startup) return { title: "Not found" };
 
   const title = startup.name.trim() || "Untitled startup";
@@ -45,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function StartupPage({ params }: PageProps) {
   const { id } = await params;
-  const startup = await getStartupById(id);
+  const startup = await getCachedStartupById(id);
 
   if (!startup) notFound();
 

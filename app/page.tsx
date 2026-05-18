@@ -1,7 +1,7 @@
 import { HomeFeed } from "@/components/home-feed";
 import { getStartups } from "@/src/lib/startups-server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function Home() {
   const startups = await getStartups();

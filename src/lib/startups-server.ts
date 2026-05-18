@@ -109,7 +109,9 @@ export async function getStartups(): Promise<Startup[]> {
     .select(
       "id, user_id, name, short_description, cause_of_death, final_lesson, tags, created_at, status",
     )
-    .eq("status", "approved");
+    .eq("status", "approved")
+    .order("created_at", { ascending: false })
+    .limit(50);
 
   if (error || !data) return [];
 
